@@ -5,15 +5,27 @@ import './app/globals.css'
 import { useState } from 'react';
 import axios from 'axios';
 import {Routes, Route, Link, useParams, useNavigate} from 'react-router-dom'
-import PreferenceForm from './PreferenceForm';
+import {PreferenceForm} from './PreferenceForm';
 import WaitingRoom from './WaitingRoom';
 import { Button } from "~/components/ui/button"
-
+import { Input } from "~/components/ui/input"
+import { Label } from "~/components/ui/label"
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarTrigger,
+} from "~/components/ui/menubar"
+import { Toaster } from './~/components/ui/toaster';
 
 
 function App() {
   const testApiKey= "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyIsImtpZCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyJ9.eyJpc3MiOiJodHRwczovL2x1ZHkuZ2FtZS5vbnN0b3ZlLmNvbSIsImF1ZCI6Imh0dHBzOi8vbHVkeS5nYW1lLm9uc3RvdmUuY29tL3Jlc291cmNlcyIsImNsaWVudF9pZCI6IjEwMDAwMDAwMDAwOTM3NjQifQ.ZAjjmyUsYd_bJQUZq0hBOhEP1EShL_-FtN0LVI2Wimy-b0Bul_KANOiAbo0vN-oUmYuGY3VGmCrvQox101Ap7z5d7WQUEvOTwNyIvsb8wAOwb3NQegyHAkNYwluVgM1noon9QpkdqWngkxZF2a8QyIm1yP3ET5DXLmFKsYvlMm556loGWgWwCYIXBy6kLxyunv1-q7kkZeTtcHsYBIs7BhfF2QwHzwTaMWMaPSrV8UZRPJ38_2Q4Wf8n6nhY9xadZv5rBaoGYQstjEa-CPXPKbD2JWgv3WCERMGDB15X_kfnSUMSYm-9OR7nfrBQ-g9tVBX6UyFCfHnxh-GXS1FTtw";
-  let [apikey, setApiKey] = useState("");
+  const openedflag= " N";
+  let [apikey, setApiKey] = useState("eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyIsImtpZCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyJ9.eyJpc3MiOiJodHRwczovL2x1ZHkuZ2FtZS5vbnN0b3ZlLmNvbSIsImF1ZCI6Imh0dHBzOi8vbHVkeS5nYW1lLm9uc3RvdmUuY29tL3Jlc291cmNlcyIsImNsaWVudF9pZCI6IjEwMDAwMDAwMDAwOTM3NjQifQ.ZAjjmyUsYd_bJQUZq0hBOhEP1EShL_-FtN0LVI2Wimy-b0Bul_KANOiAbo0vN-oUmYuGY3VGmCrvQox101Ap7z5d7WQUEvOTwNyIvsb8wAOwb3NQegyHAkNYwluVgM1noon9QpkdqWngkxZF2a8QyIm1yP3ET5DXLmFKsYvlMm556loGWgWwCYIXBy6kLxyunv1-q7kkZeTtcHsYBIs7BhfF2QwHzwTaMWMaPSrV8UZRPJ38_2Q4Wf8n6nhY9xadZv5rBaoGYQstjEa-CPXPKbD2JWgv3WCERMGDB15X_kfnSUMSYm-9OR7nfrBQ-g9tVBX6UyFCfHnxh-GXS1FTtw");
   let [userid, setUserId] = useState(0);
   let [charactername, setCharacterName] = useState("");
   let [restext, setResText] = useState("-");
@@ -25,22 +37,38 @@ function App() {
   return (
     <div className="App">
 
+    <Menubar>
+      <MenubarMenu>
+        <MenubarTrigger>내 정보</MenubarTrigger>
+        <MenubarContent>
+          <MenubarItem>선호 매칭 수정</MenubarItem>
+        </MenubarContent>
+        </MenubarMenu>
+        <MenubarMenu>
+        <MenubarTrigger>채팅방</MenubarTrigger>
+        <MenubarContent>
+          <MenubarItem>매칭 대기 화면</MenubarItem>
+          <MenubarItem>내 채팅방</MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+    </Menubar>
+
+
       <Routes>
         <Route path="/" element={
           <ApiLogin setApiKey = {setApiKey} apikey={apikey} charactername={charactername} setCharacterName={setCharacterName}
         restext={restext} setResText={setResText} navigate={navigate} setUserId={setUserId}></ApiLogin>
         } />
-
       <Route path="/api/v1/prefer/:id" 
-        element={<PreferenceForm/>} />
-       <Route path="/api/v1/waitingroom"
+        element={<PreferenceForm openedFlag={openedflag} />} />
+       <Route path="/api/v1/waitingroom/:id"
         element={<WaitingRoom navigate={navigate} userid={userid}/>}/>
        <Route path="/api/v1/chatroom"
         element={<div>
 
        </div>} />
     </Routes>
-
+    <Toaster />
     </div>
   );
 }
@@ -49,14 +77,14 @@ function ApiLogin(props){
   return(
     <>
     <div className="register-form">
-      <span>API키 </span>
-      <input type="text" className = "api-key" 
+      <Label>API키 </Label>
+      <Input type="text" className = "api-key"  defaultValue = {props.apikey}
         onChange={(e)=>props.setApiKey(e.target.value)}/>
-      <span>등록 캐릭터명</span>
-      <input type="text" className="main-character-name"
+      <Label>등록 캐릭터명</Label>
+      <Input type="text" className="main-character-name"
         onChange={(e)=>props.setCharacterName(e.target.value)}/>
-      <button className="register-apikey" 
-      onClick={()=>registryAPI(props.apikey, props.charactername, props.navigate, props.setUserId)}>로스트아크 유저 등록</button>
+      <Button variant="secondary"
+      onClick={()=>registryAPI(props.apikey, props.charactername, props.navigate, props.setUserId)}>로스트아크 유저 등록</Button>
     </div>
     <div>
       <span> {props.restext} </span>
@@ -103,105 +131,15 @@ async function registryAPI(apikey, charactername, navigate, setUserId) {
   setUserId(response2.data);
 
   const redirUrl = defaultURL+"/api/v1/prefer/"+response2.data;
-  console.log(redirUrl)
-  const response3 = await axios.get(redirUrl);
+
+
+  //const response3 = await axios.get(redirUrl);
   navigate("/api/v1/prefer/"+response2.data);
+  //console.log("/api/v1/prefer/{userId} 응답 : " + response3)
 
   }catch(err){
     console.log("err: "+err)
   }
 }
-
-/*
-function registryAPI(apikey, charactername) {
-  var authApiKey = "bearer " + apikey;
-  var apiUrl = "https://developer-lostark.game.onstove.com/characters/"+charactername+"/siblings"
-
-  console.log(authApiKey);
-  console.log("apiUrl: "+ apiUrl)
-  const promise = new Promise((resolve, reject)=>{
-    $.ajax({
-      url : apiUrl
-      ,method : "get"
-      ,beforeSend : function(xhr){
-        xhr.setRequestHeader('accept', 'application/json');
-        xhr.setRequestHeader('authorization', authApiKey);
-      }
-      ,success : function(data){
-        
-        console.log("data:" + data);
-        if(data == null){
-          reject("존재하지 않는 캐릭터명입니다.")
-        }
-        
-        
-        data.forEach(function(el, idx){
-          if(el.CharacterName == charactername){
-            setResText(JSON.stringify(data[idx]));
-            resolve(data[idx])
-          }
-        });
-      }
-      ,error : function(req, status, err){
-        reject("유효하지 않은 API Key 입니다.")
-      }
-    });
-  });
-  
-  promise.then((value)=>{
-    const promise2 = new Promise((resolve, reject)=>{
-      $.ajax({
-        url: defaultURL+"api/v1/register"
-        ,method: "post"
-        ,data:{
-          id: null,
-          apiKey: apikey,
-          nickName: value.CharacterName,
-          mainCharacter: value.CharacterName
-        }
-        ,datatype:"JSON"
-        ,success: function(data2){
-          console.log("POST 반환 데이터: " + data2);
-          resolve(data2)
-        }
-      });
-    });
-    return promise2;
-  })
-  .then((value)=>{
-    let redirUrl = defaultURL + "api/v1/prefer/"+value
-    console.log("URL: "+redirUrl);
-    $.ajax({
-      url: redirUrl
-      ,method: "get"
-      ,success: function(data){
-        console.log("GET 후 데이터: " + data)
-        window.location.replace(":/randomchat/preferenceForm.html")
-      }
-      ,error: function(req){
-        console.log("GET 후 에러: " + req)
-      }
-    })
-    
-  });
-
-  promise.catch(value=>{
-    setResText(value);
-  });
-}
-*/
-
-  // async axios.get(
-  //   apiUrl,
-  //   {
-  //     headers : {
-  //       Accept : 'application/json',
-  //       'authorization' : authApiKey,
-  //     },
-  //   }
-  // )
-  // .then(response => {
-  //   setResText(response)
-  // });
 
 export default App;

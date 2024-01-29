@@ -1,62 +1,265 @@
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+import axios from 'axios';
 import { Button } from "~/components/ui/button"
+import { Typography } from "~/components/ui/typography"
+import { Checkbox } from "~/components/ui/checkbox"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/components/ui/form"
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { useToast } from "~/components/ui/use-toast"
+
+const FormSchema = z.object({
+  items: z.array(z.string()).refine((value) => value.some((item) => item), {
+    message: "You have to select at least one item.",
+  }),
+})
+
+const preferRaid =[
+  {
+    id: 1,
+    label: "모코코",
+  },
+  {
+    id: 2,
+    label: "발탄",
+  },
+  {
+    id: 3,
+    label: "비아키스",
+  },
+  {
+    id: 4,
+    label: "쿠크세이튼",
+  },
+  {
+    id: 5,
+    label: "노말 아브렐슈드",
+  },
+  {
+    id: 6,
+    label: "하드 아브렐슈드",
+  },
+  {
+    id: 7,
+    label: "노말 카양겔",
+  },
+  {
+    id: 8,
+    label: "하드 카양겔",
+  },
+  {
+    id: 9,
+    label: "노말 일리아칸",
+  },
+  {
+    id: 10,
+    label: "하드 일리아칸",
+  },
+  {
+    id: 11,
+    label: "노말 상아탑",
+  },
+  {
+    id: 12,
+    label: "하드 상아탑",
+  },
+  {
+    id: 13,
+    label: "노말 카멘",
+  },
+  {
+    id: 14,
+    label: "하드 카멘",
+  },
+  {
+    id: 15,
+    label: "노말 에키드나",
+  },
+  {
+    id: 16,
+    label: "하드 에키드나",
+  },
+]
+
+const preferRole = [
+  {
+    id: 100,
+    label: "딜러",
+  },
+  {
+    id: 101,
+    label: "서폿",
+  },
+]
+
+const defaultURL = "http://localhost:8080";
+
+function PreferenceForm(props){
+
+  const location = useLocation();
+  const [pRaid, setRaid] = useState([]);
+  const [pRole, setRole] = useState([]);
+  const [pTime, setTime] = useState([]);
+  const { toast } = useToast()
 
 
-function PreferenceForm(){
+  let form = useForm({
+    defaultValues: {
+      preferRaid: [],
+      preferRole: [],
+    },
+    values:{
+      preferRaid: pRaid,
+      preferRole: pRole,
+    },
+  })
+
+  useEffect(() => {
+    axios.get(defaultURL + location.pathname)
+    .then(response =>{ 
+      console.log(response.data)
+      setRaid(response.data.preferRaid)
+      setRole(response.data.preferRole)
+      setTime(response.data.preferTime)
+    })
+    .catch(error=>{
+      console.log(error)
+    });
+  }, [location]);
+
+
+  const params = useParams();
+  const userId = params.id;
+  let navigate = useNavigate();
+
+  const onSubmit = (data)=>{
+    //const defaultURL = "http://localhost:8080/";
+    userId == null ? data.userId = props.userid : data.userId = Number(userId);
+    let tmp = JSON.stringify(data);
+    console.log("tmp:"+ tmp)
+    toast({
+      description: tmp,
+    })
+
+    axios.post(defaultURL+"/api/v1/prefer/" + userId, data)
+    .then(function(response){
+        navigate("/api/v1/waitingroom/"+userId)
+        console.log("save success")
+        toast({
+          titile: "저장 성공",
+          description: "선호 매칭 저장에 성공하였습니다.",
+        })
+    });
+  }
+
   return(
-    <>
-          <div>
-            <h3>레이드 구간</h3>
-            {
-            /* <div><input type="checkbox" value="a"/>1415~1444</div>
-            <div><input type="checkbox" value="b"/>1445~1489</div>
-            <div><input type="checkbox" value="c"/>1490~1519</div>
-            <div><input type="checkbox" value="d"/>1520~1539</div>
-            <div><input type="checkbox" value="e"/>1540~1579</div>
-            <div><input type="checkbox" value="f"/>1580~1599</div>
-            <div><input type="checkbox" value="g"/>1600~1609</div>
-            <div><input type="checkbox" value="h"/>1610~1619</div>
-            <div><input type="checkbox" value="i"/>1620~</div> */
-            }
-            <div><input type="checkbox" value="a"/>모코코</div>
-            <div><input type="checkbox" value="b"/>발탄</div>
-            <div><input type="checkbox" value="c"/>비아키스</div>
-            <div><input type="checkbox" value="d"/>쿠크세이튼</div>
-            <div><input type="checkbox" value="e"/>노말 아브렐슈드</div>
-            <div><input type="checkbox" value="f"/>하드 아브렐슈드</div>
-            <div><input type="checkbox" value="g"/>노말 카양겔</div>
-            <div><input type="checkbox" value="h"/>하드 카양겔</div>
-            <div><input type="checkbox" value="i"/>노말 일리아칸</div>
-            <div><input type="checkbox" value="j"/>하드 일리아칸</div>
-            <div><input type="checkbox" value="k"/>노말 상아탑</div>
-            <div><input type="checkbox" value="l"/>하드 상아탑</div>
-            <div><input type="checkbox" value="m"/>노말 카멘</div>
-            <div><input type="checkbox" value="n"/>하드 카멘</div>
-            <div><input type="checkbox" value="o"/>노말 에키드나</div>
-            <div><input type="checkbox" value="p"/>하드 에키드나</div>
-            
-          </div>
-          <div>
-            <h3> 선호 포지션</h3>
-            <input type="checkbox" value="d"/>딜러
-            <input type="checkbox" value="s"/>서폿
-          </div>
-          <div>
-            <h3>선호 시간대</h3>
-            <input type="checkbox"/>하루종일
-            <input type="checkbox"/>저녁시간
-          </div>
-          <div>
-            <h3>선호 없음</h3>
-            <input type="checkbox"/>아무나
-          </div>
-          <div style={{margin: 10}}>
-          </div>
-          <button>선호 매칭 설정 변경</button>
-          <Button variant="outline">Button</Button>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="preferRaid"
+          render={() => (
+            <FormItem>
+              <div className="mb-4">
+                { props.openedFlag ? <Typography variant="h1">매칭 대기 화면</Typography> : <Typography variant="h1">선호 매칭 선택</Typography>}
+              </div>
+              <div className="preference-form-area">
+              <div className="preference-form-box">
+                <Typography variant="h2"> 레 이 드 </Typography>
+                <div className="Set-center Subtitle-blank-10">
+                {preferRaid.map((item) => (
+                  <FormField
+                    key={item.id}
+                    control={form.control}
+                    name="preferRaid"
+                    render={({ field }) => {
+                      return (
+                        <FormItem
+                          key={item.id}
+                          className="flex flex-row space-x-3 space-y-0 align-items-center"
+                        >
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(item.id)}
+                            onCheckedChange={(checked) => {
+                              return checked
+                                ? field.onChange([...field.value, item.id])
+                                : field.onChange(
+                                    field.value?.filter(
+                                      (value) => value !== item.id
+                                    )
+                                  )
+                            }}
+                            />
+                          </FormControl>
+                          <Typography variant="p">
+                            {item.label}
+                          </Typography>
+                        </FormItem>
+                      )
+                    }}
+                  />
+                ))}
+                </div>
 
+                <div className="Subtitle-blank-40">
+                  <Typography variant="h2">포 지 션</Typography>
+                </div>
 
-        </>
+                <div className="Set-center Subtitle-blank-10">
+                {preferRole.map((item) => (
+                  <FormField
+                    key={item.id}
+                    control={form.control}
+                    name="preferRole"
+                    render={({ field }) => {
+                      return (
+                        <FormItem
+                          key={item.id}
+                          className="flex flex-row space-x-3 space-y-0 align-items-center"
+                        >
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value?.includes(item.id)}
+                              onCheckedChange={(checked) => {
+                                return checked
+                                  ? field.onChange([...field.value, item.id])
+                                  : field.onChange(
+                                      field.value?.filter(
+                                        (value) => value !== item.id
+                                      )
+                                    )
+                              }}
+                            />
+                          </FormControl>
+                          <Typography variant="p">
+                            {item.label}
+                          </Typography>
+                        </FormItem>
+                      )
+                    }}
+                  />
+                ))}
+                </div>
+              </div>
+              </div>
+            </FormItem>
+          )}
+        />
+        { props.openedFlag ? <Button type="submit" variant="secondary">변경</Button>:  <Button type="submit" variant="secondary">저장</Button>}
+      </form>
+    </Form>
   )
 }
 
-export default PreferenceForm;
+export {PreferenceForm}
