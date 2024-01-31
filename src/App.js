@@ -1,8 +1,7 @@
 /* eslint-disable */
-import {Navbar} from 'react-bootstrap'
 import './App.css';
 import './app/globals.css'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import {Routes, Route, Link, useParams, useNavigate} from 'react-router-dom'
 import {PreferenceForm} from './PreferenceForm';
@@ -10,28 +9,32 @@ import WaitingRoom from './WaitingRoom';
 import { Button } from "~/components/ui/button"
 import { Input } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
+import { Typography } from "~/components/ui/typography"
 import {
   Menubar,
   MenubarContent,
   MenubarItem,
   MenubarMenu,
-  MenubarSeparator,
-  MenubarShortcut,
   MenubarTrigger,
+  MenubarLabel,
 } from "~/components/ui/menubar"
 import { Toaster } from './~/components/ui/toaster';
+import ChattingRoom from './ChattingRoom';
 
+const defaultURL = "http://localhost:8080/";
 
 function App() {
-  const testApiKey= "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyIsImtpZCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyJ9.eyJpc3MiOiJodHRwczovL2x1ZHkuZ2FtZS5vbnN0b3ZlLmNvbSIsImF1ZCI6Imh0dHBzOi8vbHVkeS5nYW1lLm9uc3RvdmUuY29tL3Jlc291cmNlcyIsImNsaWVudF9pZCI6IjEwMDAwMDAwMDAwOTM3NjQifQ.ZAjjmyUsYd_bJQUZq0hBOhEP1EShL_-FtN0LVI2Wimy-b0Bul_KANOiAbo0vN-oUmYuGY3VGmCrvQox101Ap7z5d7WQUEvOTwNyIvsb8wAOwb3NQegyHAkNYwluVgM1noon9QpkdqWngkxZF2a8QyIm1yP3ET5DXLmFKsYvlMm556loGWgWwCYIXBy6kLxyunv1-q7kkZeTtcHsYBIs7BhfF2QwHzwTaMWMaPSrV8UZRPJ38_2Q4Wf8n6nhY9xadZv5rBaoGYQstjEa-CPXPKbD2JWgv3WCERMGDB15X_kfnSUMSYm-9OR7nfrBQ-g9tVBX6UyFCfHnxh-GXS1FTtw";
-  const openedflag= " N";
+  const openedflag= "N";
+  let [userId, setUserId] = useState("");
   let [apikey, setApiKey] = useState("eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyIsImtpZCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyJ9.eyJpc3MiOiJodHRwczovL2x1ZHkuZ2FtZS5vbnN0b3ZlLmNvbSIsImF1ZCI6Imh0dHBzOi8vbHVkeS5nYW1lLm9uc3RvdmUuY29tL3Jlc291cmNlcyIsImNsaWVudF9pZCI6IjEwMDAwMDAwMDAwOTM3NjQifQ.ZAjjmyUsYd_bJQUZq0hBOhEP1EShL_-FtN0LVI2Wimy-b0Bul_KANOiAbo0vN-oUmYuGY3VGmCrvQox101Ap7z5d7WQUEvOTwNyIvsb8wAOwb3NQegyHAkNYwluVgM1noon9QpkdqWngkxZF2a8QyIm1yP3ET5DXLmFKsYvlMm556loGWgWwCYIXBy6kLxyunv1-q7kkZeTtcHsYBIs7BhfF2QwHzwTaMWMaPSrV8UZRPJ38_2Q4Wf8n6nhY9xadZv5rBaoGYQstjEa-CPXPKbD2JWgv3WCERMGDB15X_kfnSUMSYm-9OR7nfrBQ-g9tVBX6UyFCfHnxh-GXS1FTtw");
-  let [userid, setUserId] = useState(0);
   let [charactername, setCharacterName] = useState("");
   let [restext, setResText] = useState("-");
-  const defaultURL = "http://localhost:8080/";
 
   let navigate = useNavigate();
+
+  useEffect(()=>{
+    console.log(userId)
+  }, [userId])
 
 
   return (
@@ -39,16 +42,21 @@ function App() {
 
     <Menubar>
       <MenubarMenu>
+        <MenubarTrigger>        
+          <Typography variant="h4" className="logo-font">LoChat</Typography>
+      </MenubarTrigger> 
+      </MenubarMenu>
+      <MenubarMenu>
         <MenubarTrigger>내 정보</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>선호 매칭 수정</MenubarItem>
+          <MenubarItem onClick={()=>navigate("/api/v1/prefer/"+userId, {state:{openedFlag:"N"}})}>선호 매칭 수정</MenubarItem>
         </MenubarContent>
         </MenubarMenu>
         <MenubarMenu>
         <MenubarTrigger>채팅방</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>매칭 대기 화면</MenubarItem>
-          <MenubarItem>내 채팅방</MenubarItem>
+          <MenubarItem onClick={()=>navigate("/api/v1/waitingroom/"+userId)}>새 매칭</MenubarItem>
+          <MenubarItem onClick={()=>navigate("/api/v1/chattingroom/"+userId)}>내 채팅방</MenubarItem>
         </MenubarContent>
       </MenubarMenu>
     </Menubar>
@@ -60,13 +68,11 @@ function App() {
         restext={restext} setResText={setResText} navigate={navigate} setUserId={setUserId}></ApiLogin>
         } />
       <Route path="/api/v1/prefer/:id" 
-        element={<PreferenceForm openedFlag={openedflag} />} />
-       <Route path="/api/v1/waitingroom/:id"
-        element={<WaitingRoom navigate={navigate} userid={userid}/>}/>
-       <Route path="/api/v1/chatroom"
-        element={<div>
-
-       </div>} />
+        element={<PreferenceForm openedFlag={openedflag} userId={userId} />} />
+      <Route path="/api/v1/waitingroom/:id"
+        element={<WaitingRoom navigate={navigate} userId={userId}/>}/>
+      <Route path="/api/v1/chattingroom/:id"
+        element={<ChattingRoom />}/>
     </Routes>
     <Toaster />
     </div>
@@ -125,18 +131,13 @@ async function registryAPI(apikey, charactername, navigate, setUserId) {
     mainCharacter: charactername
   };
 
-  const response2 = await axios.post(
-    defaultURL+"/api/v1/register",registerData);
-  
-  setUserId(response2.data);
-
-  const redirUrl = defaultURL+"/api/v1/prefer/"+response2.data;
-
-
-  //const response3 = await axios.get(redirUrl);
-  navigate("/api/v1/prefer/"+response2.data);
-  //console.log("/api/v1/prefer/{userId} 응답 : " + response3)
-
+    await axios.post(defaultURL+"/api/v1/register",registerData)
+      .then(response => {
+        setUserId(response.data)
+        const navUri = "/api/v1/prefer/"+response.data
+        navigate(navUri);
+      }
+    );
   }catch(err){
     console.log("err: "+err)
   }

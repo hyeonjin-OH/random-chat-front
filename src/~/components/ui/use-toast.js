@@ -133,8 +133,6 @@ function toast({
 
 function useToast() {
   const [state, setState] = React.useState(memoryState)
-  console.log("useToast ")
-  console.log(state)
   React.useEffect(() => {
     listeners.push(setState)
     return () => {

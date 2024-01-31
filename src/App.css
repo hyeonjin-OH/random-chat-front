@@ -75,3 +75,48 @@
 .align-items-center{
   align-items: center;
 }
+
+.progress-bar-div{
+  display: flex;
+  justify-content: center;
+}
+.progress-bar-width-300{
+  width: 300px;
+}
+
+.menubar-height-4rem{
+  height: 4rem;
+}
+
+.menubar-font-large{
+  font-size: large;
+}
+
+.logo-font{
+  padding: 5px 12px 5px 12px;
+  background-color: #F2F2F2;
+  border-radius: 5%;
+}
+
+.chat-room-div{
+  display: flex;
+  height: 100vw;
+  width: 100vw
+}
+.chat-list-tab{
+  width: 500px;
+  padding-left: 20px;
+  padding-right: 20px;
+  justify-content: left;
+  height: 100%;
+}
+
+.chat-room-border{
+  border-left: thin solid #F2F2F2;
+  height:100%;
+}
+
+.chat-text-box{
+  width: 100%;
+  padding-left: 20px;
+}

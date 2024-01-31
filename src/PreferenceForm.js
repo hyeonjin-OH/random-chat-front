@@ -111,8 +111,10 @@ function PreferenceForm(props){
   const [pRole, setRole] = useState([]);
   const [pTime, setTime] = useState([]);
   const { toast } = useToast()
-
-
+  
+  const param = useParams();
+  const userId = param.id;
+  
   let form = useForm({
     defaultValues: {
       preferRaid: [],
@@ -124,9 +126,11 @@ function PreferenceForm(props){
     },
   })
 
+
   useEffect(() => {
     axios.get(defaultURL + location.pathname)
     .then(response =>{ 
+      console.log("get PreferenceForm")
       console.log(response.data)
       setRaid(response.data.preferRaid)
       setRole(response.data.preferRole)
@@ -138,20 +142,15 @@ function PreferenceForm(props){
   }, [location]);
 
 
-  const params = useParams();
-  const userId = params.id;
   let navigate = useNavigate();
-
   const onSubmit = (data)=>{
-    //const defaultURL = "http://localhost:8080/";
-    userId == null ? data.userId = props.userid : data.userId = Number(userId);
-    let tmp = JSON.stringify(data);
-    console.log("tmp:"+ tmp)
-    toast({
-      description: tmp,
-    })
 
-    axios.post(defaultURL+"/api/v1/prefer/" + userId, data)
+    data.uuId = userId;
+    let tmp = JSON.stringify(data);
+    console.log("onSubmit data====")
+    console.log(tmp)
+
+    axios.post(defaultURL+"/api/v1/prefer", data)
     .then(function(response){
         navigate("/api/v1/waitingroom/"+userId)
         console.log("save success")
@@ -170,8 +169,8 @@ function PreferenceForm(props){
           name="preferRaid"
           render={() => (
             <FormItem>
-              <div className="mb-4">
-                { props.openedFlag ? <Typography variant="h1">매칭 대기 화면</Typography> : <Typography variant="h1">선호 매칭 선택</Typography>}
+              <div className="mb-4 Subtitle-blank-40">
+                { props.openedFlag=="Y" ? <Typography variant="h1">매칭 대기 화면</Typography> : <Typography variant="h1">선호 매칭 선택</Typography>}
               </div>
               <div className="preference-form-area">
               <div className="preference-form-box">
