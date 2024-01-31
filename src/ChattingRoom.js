@@ -7,11 +7,16 @@ import axios from 'axios';
 import './App.css';
 import { Input } from "~/components/ui/input"
 
+const defaultURL = "http://localhost:8080";
 
-
-function ChattingRoom(props){
-
-  const defaultURL = "http://localhost:8080";
+const ChattingRoom= ({
+  chatHistory,
+  username,
+  setUsername,
+  message,
+  setMessage,
+  handleEnter,
+})=> {
   const location = useLocation();
   const userId = useParams().id;
 
@@ -33,29 +38,26 @@ function ChattingRoom(props){
     <div className="chat-room-border"></div>
     <div className="chat-text-box">
       <div>
-      {/* <div >
-        유저이름 : 
-        <Input
-          style={{flex : 1}}
-          value={props.username}
-          onChange={e=>props.setUsername(e.target.value)}
-        />
+        <div>
+          <Typography variant="h3"> 채팅방 </Typography>
+        </div>
+        <div className="Subtitle-blank-20"></div>
+        <div className="chat-message-show-area">
+          {chatHistory && chatHistory.map((msg, index) => (
+            <div key={index}>{msg.content}</div>
+          ))}
+        </div>
+        <div className="chat-message-input-area">
+          <Input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            style={{ marginRight: "10px" }}
+          />
+          <Button type="primary" onClick={handleEnter}>
+            Send
+          </Button>
+        </div>
       </div>
-      <div className={"contents"}>
-        {props.contents.map((message) => (
-          <div> {message.username} : {message.content} </div>
-        ))}
-      </div>
-      <div>
-        <Input.Search
-          placeholder="input your messages..."
-          value={props.message}
-          onChange={(e) => props.setMessage(e.target.value)}
-          onSearch={(value) => props.handleEnter(props.username, value)}
-          enterButton={"Enter"}
-        />
-      </div> */}
-    </div>
     </div>
 
     </div>
