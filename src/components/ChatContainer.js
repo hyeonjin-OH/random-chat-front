@@ -1,16 +1,9 @@
-import { Button } from "~/components/ui/button"
-import { Typography } from "~/components/ui/typography"
-import { ChattingRoom } from './ChattingRoom'
+import { ChattingRoom } from 'components/ChattingRoom'
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import { message as MessageType } from "antd";
-import { Textarea } from "~/components/ui/textarea"
-import Stomp from '@stomp/stompjs';
+import {Stomp} from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-
-const sockJs = new SockJS('http://localhost:8080/stomp/chat');
-let stompClient = Stomp.over(sockJs)
-stompClient.debug = () => {};
 
 function ChatContainer(){
 
@@ -20,10 +13,10 @@ function ChatContainer(){
   const [chatHistory, setChatHistory] = useState([]);
 
   useEffect(() => {
-    // Connect to WebSocket
-    const socket = new SockJS("http://localhost:8080/webSocket");
+    // Connect to WebSocket - over func will deprecated
+    const socket = new SockJS("http://localhost:8080/chat");
     const stomp = Stomp.over(socket);
-    stomp.debug = null; // Disable debug logs
+    // const stomp = Stomp.client("ws://localhost:8080/chat");
     setStompClient(stomp);
 
     return () => {
@@ -36,7 +29,8 @@ function ChatContainer(){
     if (stompClient) {
       // Subscribe to the user-specific topic
       stompClient.connect({}, () => {
-        stompClient.subscribe('/sub/messages', (message) => {
+        stompClient.subscribe('/sub/messages}', (message) => {
+          console.log("subscribe:"+ message.body)
           const newMessage = JSON.parse(message.body);
           setChatHistory((prevHistory) => [...prevHistory, newMessage]);
         });
@@ -46,14 +40,13 @@ function ChatContainer(){
 
   const handleEnter = () => {
     if (stompClient && message && username) {
-      // Send message to the recipient
-      stompClient.send('/chat/${username}', {}, JSON.stringify({ content: message }));
+      stompClient.send('/chat', {}, JSON.stringify({ content: message }));
       setMessage("");
     }
   };
 
   return(
-    <div >
+    <>
     <ChattingRoom
       chatHistory={chatHistory}
       username={username}
@@ -62,9 +55,9 @@ function ChatContainer(){
       setMessage={setMessage}
       handleEnter={handleEnter}
     />
-  </div>
+  </>
   )
 
 }
 
-export default ChatContainer;
+export {ChatContainer}

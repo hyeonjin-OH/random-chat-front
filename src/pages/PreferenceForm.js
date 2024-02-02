@@ -1,10 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import axios from 'axios';
 import { Button } from "~/components/ui/button"
 import { Typography } from "~/components/ui/typography"
 import { Checkbox } from "~/components/ui/checkbox"
+import {setCookie, getCookie} from 'app/cookie'
+import {instance, instanceE} from 'api/axiosApi'
 import {
   Form,
   FormControl,
@@ -102,8 +103,6 @@ const preferRole = [
   },
 ]
 
-const defaultURL = "http://localhost:8080";
-
 function PreferenceForm(props){
 
   const location = useLocation();
@@ -128,7 +127,8 @@ function PreferenceForm(props){
 
 
   useEffect(() => {
-    axios.get(defaultURL + location.pathname)
+    instance(getCookie("accessToken")).
+    get(location.pathname)
     .then(response =>{ 
       console.log("get PreferenceForm")
       console.log(response.data)
@@ -147,12 +147,12 @@ function PreferenceForm(props){
 
     data.uuId = userId;
     let tmp = JSON.stringify(data);
-    console.log("onSubmit data====")
-    console.log(tmp)
+    console.log("accessToken : " + getCookie("accessToken"))
 
-    axios.post(defaultURL+"/api/v1/prefer", data)
+    instance(getCookie("accessToken"))
+    .post("/api/v1/prefer", data)
     .then(function(response){
-        navigate("/api/v1/waitingroom/"+userId)
+        navigate("/api/v1/waitingroom")
         console.log("save success")
         toast({
           titile: "저장 성공",

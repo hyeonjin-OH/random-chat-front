@@ -1,10 +1,7 @@
 import { Button } from "~/components/ui/button"
 import { Typography } from "~/components/ui/typography"
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import './App.css';
-import { Input } from "~/components/ui/input"
+import 'App.css';
 import {
   Table,
   TableBody,
@@ -22,7 +19,7 @@ function ChatList(props){
 
   return(
     <Table>
-      <TableCaption>채팅방 참가자가 모두 참가 상태인 채팅방 (최대 3개)</TableCaption>
+      <TableCaption>채팅방 참가자가 모두 참가 상태인 채팅방 (최대 4개)</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead className="text-center">채팅방(개설시간)</TableHead>
