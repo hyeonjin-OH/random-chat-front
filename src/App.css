@@ -101,7 +101,7 @@
 
 .chat-room-div{
   display: flex;
-
+  height: calc(100vh - 4rem)
 }
 .chat-list-tab{
   width: 400px;
