@@ -141,3 +141,9 @@
   border: 1px solid #F2F2F2;
   display: flex;
 }
+
+.ChattingRoom-Border{
+  border : solid 1px #F2F2F2;
+  padding: 5px;
+  border-radius: 2%;
+}

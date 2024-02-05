@@ -65,6 +65,7 @@ const onLoginSuccess = response => {
   console.log(response.data)
   // accessToken 설정
   setCookie("accessToken",response.data.accessToken);
+  setCookie("uuid",response.data.use);
   localStorage.setItem("accessToken", response.data.accessToken);
 
   console.log("TOKEN:"+ getCookie("accessToken"))

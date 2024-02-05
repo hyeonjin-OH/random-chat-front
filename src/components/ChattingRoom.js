@@ -2,29 +2,29 @@ import { Button } from "~/components/ui/button"
 import { Typography } from "~/components/ui/typography"
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import {instance, instanceE} from 'api/axiosApi'
+import {setCookie, getCookie} from 'app/cookie'
 import 'App.css';
 import { Input } from "~/components/ui/input"
 
+
 const ChattingRoom= (props)=> {
+  
+  const location = useLocation()
 
-  const location = useLocation();
-  const userId = useParams().id;
+  // let [chatList, setChatList] = useState([]);
 
-  useEffect(() => {
-    axios.get("api/v1/chattingroom")
-    .then(function(response){
-      console.log(response.data)
-
-      console.log("props ====")
-      console.log(props)
-
-      props.setUsername(userId)
-    })
-    .catch(error=>{
-      console.log("axios get error")
-    });
-  }, [location]);
+  // useEffect(() => {
+  //   instance(getCookie("accessToken"))
+  //   .get("api/v1/chattingroom")
+  //   .then(function(response){
+  //     console.log(response.data)
+  //     setChatList(response.data)
+  //   })
+  //   .catch(error=>{
+  //     console.log("axios get error")
+  //   });
+  // }, [location]);
 
   const activeEnter = (e) => {
     if(e.key === "Enter") {
