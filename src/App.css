@@ -131,6 +131,11 @@
   background-color: #F2F2F2;
   opacity: 0.7;
   border-radius: 3%;
+  text-align: left;
+}
+
+.chat-message-show-area-text{
+  padding-left: 10px;
 }
 
 .chat-message-input-area{

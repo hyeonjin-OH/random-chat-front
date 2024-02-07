@@ -35,11 +35,9 @@ function ChatList(props){
     roomId: -1,
     roomKey: ''
   }])
-  
+
   const [lastIdx, setLastIdx] = useState(0)
   let location = useLocation();
-
-  const [selectedRow, setSelectedRow] = useState(-1);
 
    useEffect(()=>{
      try{
@@ -56,8 +54,6 @@ function ChatList(props){
           })
         )
         setInputData(inputData.concat(_inputData))
-        console.log("inputData ====")
-        console.log(inputData)
       }
       getData()
       
@@ -67,10 +63,7 @@ function ChatList(props){
   },[location])
 
   const clickHandler=(idx, e)=>{
-    console.log("CLICK")
-    console.log(e.target)
-    console.log(inputData[idx].roomKey)
-    //props.getRoomKey(roomKey)
+    props.getRoomInfo(inputData[idx].roomKey, inputData[idx].roomId, inputData[idx].createdTime)
   }
 
   return(
@@ -81,14 +74,16 @@ function ChatList(props){
         <TableRow>
           <TableHead className="text-center w-[170px]">채팅방(개설시간)</TableHead>
           <TableHead className="text-center">마지막 대화</TableHead>
+          <TableHead></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {lastIdx !== 0 ? inputData.map((chat, idx) => (
           chat.createdTime !== '' &&
-            <TableRow key={idx} data-item={chat} onClick={(e)=> clickHandler(idx, e) }>
+            <TableRow key={idx} onClick={(e)=> clickHandler(idx, e) }>
               <TableCell>{chat.createdTime}</TableCell>
               <TableCell>{chat.lastMessage}</TableCell>
+              <TableCell><Button onClick={(e)=> clickHandler(idx, e) }>OPEN</Button></TableCell>
             </TableRow>
           )):
           null

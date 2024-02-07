@@ -1,25 +1,25 @@
 import { ChattingRoom } from 'components/ChattingRoom'
-import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from 'react';
-import { message as MessageType } from "antd";
 import {Stomp} from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { getCookie } from 'app/cookie';
+import moment from 'moment';
 
 function ChatContainer(props){
-
+  
   const [stompClient, setStompClient] = useState(null);
   const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [roomKey, setRoomKey] = useState("");
-
+  const [roomId, setRoomId] = useState("");
+  const [roomInfo, setRoomInfo] = useState({
+    roomKey: '',
+    roomId: 0,
+    createdTime: ''
+  });
 
   useEffect(() => {
-    console.log("ChatContainer In")
-    console.log(props)
-    setRoomKey(props.roomKey)
-
     // Connect to WebSocket - over func will deprecated
     const socket = new SockJS("http://localhost:8080/chat");
     const stomp = Stomp.over(socket);
@@ -28,18 +28,18 @@ function ChatContainer(props){
     setStompClient(stomp);
 
     return () => {
-      // Disconnect when component unmounts
       stomp.disconnect();
     };
-  }, []);
+  },[]);
 
   useEffect(() => {
     if (stompClient) {
+      setRoomInfo(props.roomInfo)
       let headers = {Authorization: getCookie('accessToken')};
-      // Subscribe to the user-specific topic
+      
+      // 구독
       stompClient.connect(headers, () => {
-        stompClient.subscribe('/sub/messages}', (message) => {
-          console.log("subscribe:"+ message.body)
+        stompClient.subscribe('/sub/chat/room/'+roomInfo.roomId, (message) => {
           const newMessage = JSON.parse(message.body);
           setChatHistory((prevHistory) => [...prevHistory, newMessage]);
         });
@@ -47,31 +47,43 @@ function ChatContainer(props){
     }
   }, [stompClient, username]);
 
+  // chatting message 전송
   const handleEnter = () => {
-    console.log("HandleEnter")
-    console.log(stompClient)
-    console.log(message)
-    console.log(username)
     if (stompClient && message && username) {
-      stompClient.send('/chat', {}, JSON.stringify({ content: message }));
+      stompClient.send('/pub/chat/message', {}, 
+      // ChatMessage DTO
+      JSON.stringify({ 
+        type: 'TALK',
+        roomKey: roomInfo.roomKey,
+        sender: username,
+        message: message,
+        sendTime: moment() }));
+
+      // Input칸 초기화
       setMessage("");
     }
   };
 
+  // ChatList에서 대화방 선택하여 오픈 후 ChattingRoom에서 과거 대화내용 가져옴
+  const getPastChat=(chat) =>{
+    setChatHistory((prevHistory) => [...prevHistory, chat]);
+  }
 
   return(
     <>
     <ChattingRoom
+      roomInfo={roomInfo}
       chatHistory={chatHistory}
       username={username}
       setUsername={setUsername}
       message={message}
       setMessage={setMessage}
       handleEnter={handleEnter}
+      setChatHistory={setChatHistory}
+      getPastChat={getPastChat}
     />
   </>
   )
-
 }
 
 export {ChatContainer}

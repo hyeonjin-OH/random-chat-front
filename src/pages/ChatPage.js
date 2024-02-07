@@ -2,33 +2,57 @@ import { ChatContainer } from "components/ChatContainer"
 import { ChatList } from "components/ChatList"
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from 'react';
-import {instance, instanceE} from 'api/axiosApi'
-import {setCookie, getCookie} from 'app/cookie'
 
-function ChatPage(props){
+function ChatPage(){
 
   const location = useLocation();
-  let [roomKey, setRoomKey] = useState([]);
-  const getRoomKey = roomKey =>{
-    setRoomKey(roomKey);
-  }
+  const [roomInfo, setRoomInfo] = useState({
+    roomKey: '',
+    roomId: 0,
+    createdTime: ''
+  });
+  const [roomCount, setRoomCount] = useState(0)
+  const [selectedRoom, setSelectedRoom] = useState([{
+    roomKey: '',
+    roomId: 0,
+    createdTime: ''
+  }])
 
-  useEffect(() => {
-    console.log("ChatPage In")
-    if (props.roomKey !== null){
-      console.log(props)
+  // ChatList에서 선택한 채팅방 정보 가져와서 셋팅
+  const getRoomInfo = (key, id, time) =>{
+    const tmp = {roomKey: key, roomId: id, createdTime: time}
+    setRoomInfo(tmp)
+
+    if(roomCount === 0){
+      setSelectedRoom([tmp])
+      setRoomCount(roomCount+1)
     }
-  }, [props.roomKey]);
+    else{
+      let s = 0
+      selectedRoom.map((r, idx) => {
+        if (r.roomKey === key){
+          s += 1
+        }
+      })
 
+      if (s === 0 ){
+        setSelectedRoom(selectedRoom.concat(tmp))
+        setRoomCount(roomCount+1)
+      }
+    }
+    console.log(roomInfo)
+  }
 
   return(
     <div className="chat-room-div">
       <div className="chat-list-tab">
-        <ChatList getRoomKey={getRoomKey} />
+        <ChatList getRoomInfo={getRoomInfo} />
       </div>
       <div className="chat-text-box">
-        <ChatContainer />
-        <ChatContainer />
+        {roomCount !== 0? (selectedRoom.map((r, idx)=>(
+          <ChatContainer key={idx} roomInfo={r}/>
+        ))) : null
+        }
       </div>
     </div>
   )
