@@ -7,6 +7,7 @@ import {setCookie, getCookie} from 'app/cookie'
 import 'App.css';
 import { Input } from "~/components/ui/input"
 import base64 from "base-64"
+import moment from 'moment';
 
 
 const ChattingRoom= (props)=> {
@@ -31,12 +32,10 @@ const ChattingRoom= (props)=> {
     await instance(getCookie("accessToken"))
     .get("api/v1/chattingroom/"+roomId)
     .then(function(response){
-      console.log(response)
       response.data.map((chat) => {
-        let writer = chat.sender
-        let message = chat.message
-        props.getPastChat(writer+" : "+message)
+        props.getPastChat(chat);
       })
+      
     })
     .catch(error=>{
       console.log(error.message)
@@ -50,6 +49,23 @@ const ChattingRoom= (props)=> {
     }
   }
 
+  const setMessage = (data) => {
+    if( data.sender == uuId ) {
+      return(
+        <div className='chat-message-show-area-text my-chat'>
+          <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
+          <span className ='chat-message-text-me'> {data.message} </span>
+        </div>)
+    } else {
+      return(
+        <div className='chat-message-show-area-text other-chat'>
+          <span className ='chat-message-text-other'> {data.message} </span>
+          <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
+      </div>
+      )
+    }
+  }
+
   return(
     <>
       <div>
@@ -57,11 +73,12 @@ const ChattingRoom= (props)=> {
       </div>
       <div className="Subtitle-blank-20"></div>
       <div className="chat-message-show-area">
-        {props.chatHistory && props.chatHistory.map((msg, index) => (
-          <div className="chat-message-show-area-text" key={index}> {msg} </div>
-        ))}
+        <div className="chat-message-text-area">
+        {props.chatHistory && props.chatHistory.map((msg, index) =>
+        setMessage(msg))}
+        </div>
       </div>
-      <div className="chat-message-input-area">
+      <div className= "chat-message-input-area">
         <Input
           value={props.message}
           onChange={(e) => props.setMessage(e.target.value)}
