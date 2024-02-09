@@ -59,12 +59,24 @@ const TableCell = React.forwardRef(({ className, ...props }, ref) => (
   <td
     ref={ref}
     className={cn(
-      "p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "p-2 text-left align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
       className
     )}
     {...props} />
 ))
 TableCell.displayName = "TableCell"
+
+const TableCellP = React.forwardRef(({ className, ...props }, ref) => (
+  <td
+    ref={ref}
+    className={cn(
+      "text-left align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      className
+    )}
+    {...props} />
+))
+TableCellP.displayName = "TableCellP"
+
 
 const TableCaption = React.forwardRef(({ className, ...props }, ref) => (
   <caption
@@ -82,5 +94,6 @@ export {
   TableHead,
   TableRow,
   TableCell,
+  TableCellP,
   TableCaption,
 }

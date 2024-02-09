@@ -1,4 +1,4 @@
-import {PreferenceForm} from "pages/PreferenceForm";
+import {PreferenceForm} from "components/PreferenceForm";
 import { Button } from "~/components/ui/button"
 import * as React from "react"
 import { useEffect, useState } from 'react';
@@ -33,9 +33,9 @@ function WaitingRoom(props){
       <Button onClick={()=>{
         navigate("/api/v1/chattingroom")
       }}>랜덤 매칭 시작</Button> 
-
+    </div>    
+    <div className="Subtitle-blank-20">
     </div>
-
     </>
   )
 }

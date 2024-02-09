@@ -6,9 +6,10 @@ import axios from 'axios';
 import {instance, instanceE} from 'api/axiosApi'
 import {Routes, Route, Link, useParams, useNavigate} from 'react-router-dom'
 import { Button } from "~/components/ui/button"
-import { Input } from "~/components/ui/input"
+import { Input, Input300, Input500 } from "~/components/ui/input"
 import { Label } from "~/components/ui/label"
 import {setCookie, getCookie} from "app/cookie"
+import { Typography } from "~/components/ui/typography"
 
 
 function ApiLogin(props){
@@ -21,21 +22,34 @@ function ApiLogin(props){
   let navigate = useNavigate();
 
   return(
-    <>
     <div className="register-form">
-      <Label>API키 </Label>
-      <Input type="text" className = "api-key"  defaultValue = {props.apikey}
+    <div className="register-form-div">
+      <Typography variant="h5">API키 </Typography>
+      <Input500 type="text" className = "api-key"  defaultValue = {props.apikey}
         onChange={(e)=>props.setApiKey(e.target.value)}/>
-      <Label>등록 캐릭터명</Label>
-      <Input type="text" className="main-character-name"
+      <Typography variant="h5">캐릭터명</Typography>
+      <Input300 type="text" className="main-character-name"
         onChange={(e)=>props.setCharacterName(e.target.value)}/>
-      <Button variant="secondary"
+      <div className='Subtitle-blank-10'>
+      <Button
       onClick={()=>registryAPI(props.apikey, props.charactername, props.navigate, props.setUserId)}>로스트아크 유저 등록</Button>
+      </div>
     </div>
-    <div>
-      <span> {props.restext} </span>
+    <div className='Subtitle-blank-40' style={{display:'flex', flexDirection:'column'}}>
+      <Typography variant="h2"> 💻LOSTARK API 발급 받는 법</Typography>
+      <div className='Subtitle-blank-10'>
+      <Typography variant="h5">1. <a href='https://developer-lostark.game.onstove.com/' target='_blank'> 👉로스트아크 API 발급 사이트👈</a> 에 접속한다.</Typography>
+      <Typography variant="h5">2. STOVE ID로 로그인한다. </Typography>
+      <Typography variant="h5">3. 화면 중앙에 있는 GET ACCESS TO LOASTARK API를 누른 후 코드를 받는다.</Typography>
+      <Typography variant="h5">4. 기존 발급 유저들은 상단 API STATUS 버튼을 누른 후 코드를 복사한다.</Typography>
+      </div>
+      <div className='Subtitle-blank-20' style={{display:'flex', flexDirection:'column'}}>
+      <Typography variant="inlineCode">API키의 경우, 단순 로스트아크 유저(STOVE) 확인 용이며 암호화 되어 저장됩니다.</Typography>
+      <Typography variant="inlineCode">캐릭터 명은 API인증을 위한 요소일 뿐 저장되지 않습니다. 유효한 캐릭터명을 입력해주세요.</Typography>
+      </div>
+
     </div>
-  </>
+  </div>
   )
 }
 

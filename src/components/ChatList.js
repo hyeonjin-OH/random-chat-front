@@ -6,24 +6,19 @@ import moment from 'moment';
 import { useEffect, useState } from 'react';
 import {instance, instanceE} from 'api/axiosApi'
 import {setCookie, getCookie} from 'app/cookie'
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
+import { ImExit } from "react-icons/im";
+
 import 'moment/locale/ko';
 import {
   Table,
   TableBody,
   TableCaption,
   TableCell,
+  TableCellP,
   TableHead,
   TableHeader,
   TableRow,
 } from "~/components/ui/table"
-import { ChatContainer } from "./ChatContainer";
-import { ChatPage } from "pages/ChatPage";
 
 
 function ChatList(props){
@@ -47,7 +42,7 @@ function ChatList(props){
           setLastIdx(lastIdx+1),
           {
             idx: lastIdx,
-            createdTime: moment(r.createdTime).format('YYYY-MM-DD HH:mm:ss'),
+            createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
             lastMessage: r.lastMessage,
             roomId: r.roomId,
             roomKey: r.roomKey
@@ -72,18 +67,22 @@ function ChatList(props){
       <TableCaption>채팅 나간 후 재입장 불가능 </TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead className="text-center w-[170px]">채팅방(개설시간)</TableHead>
+          <TableHead className="text-center w-[140px]">채팅방(개설시간)</TableHead>
           <TableHead className="text-center">마지막 대화</TableHead>
-          <TableHead></TableHead>
+          {/* <TableHead></TableHead>
+          <TableHead></TableHead> */}
         </TableRow>
       </TableHeader>
       <TableBody>
         {lastIdx !== 0 ? inputData.map((chat, idx) => (
           chat.createdTime !== '' &&
-            <TableRow key={idx} onClick={(e)=> clickHandler(idx, e) }>
+          <TableRow>
               <TableCell>{chat.createdTime}</TableCell>
               <TableCell>{chat.lastMessage}</TableCell>
-              <TableCell><Button onClick={(e)=> clickHandler(idx, e) }>OPEN</Button></TableCell>
+              <TableCellP><Button size="m" variant="outline" onClick={(e)=> clickHandler(idx, e) }>
+                OPEN</Button></TableCellP>
+              <TableCellP><Button size="m" variant="outline" onClick={(e)=> clickHandler(idx, e) }>
+              <ImExit /></Button></TableCellP>
             </TableRow>
           )):
           null

@@ -1,5 +1,7 @@
 import { Button } from "~/components/ui/button"
 import { Typography } from "~/components/ui/typography"
+import { IoIosCloseCircleOutline } from "react-icons/io";
+
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import {instance, instanceE} from 'api/axiosApi'
@@ -68,6 +70,7 @@ const ChattingRoom= (props)=> {
 
   return(
     <>
+    <div className="right-align-close"><IoIosCloseCircleOutline /></div>
       <div>
         <Typography variant="h3"> 채팅방  [{props.roomInfo.createdTime} 개설]</Typography>
       </div>
@@ -82,7 +85,7 @@ const ChattingRoom= (props)=> {
         <Input
           value={props.message}
           onChange={(e) => props.setMessage(e.target.value)}
-          onKeyDown={activeEnter}
+          onKeyPress={activeEnter}
         />
         <Button type="primary" onClick={props.handleEnter}>
           Send

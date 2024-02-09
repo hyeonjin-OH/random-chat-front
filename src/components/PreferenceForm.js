@@ -125,7 +125,6 @@ function PreferenceForm(props){
     },
   })
 
-
   useEffect(() => {
     instance(getCookie("accessToken")).
     get(location.pathname)
@@ -140,7 +139,6 @@ function PreferenceForm(props){
       console.log(error)
     });
   }, [location]);
-
 
   let navigate = useNavigate();
   const onSubmit = (data)=>{
@@ -170,7 +168,8 @@ function PreferenceForm(props){
           render={() => (
             <FormItem>
               <div className="mb-4 Subtitle-blank-40">
-                { props.openedFlag=="Y" ? <Typography variant="h1">매칭 대기 화면</Typography> : <Typography variant="h1">선호 매칭 선택</Typography>}
+                { props.openedFlag=="Y" ? <Typography variant="h1">매칭 대기</Typography> 
+                : <Typography variant="h1">선호 매칭 선택</Typography>}
               </div>
               <div className="preference-form-area">
               <div className="preference-form-box">
@@ -255,7 +254,10 @@ function PreferenceForm(props){
             </FormItem>
           )}
         />
-        { props.openedFlag ? <Button type="submit" variant="secondary">변경</Button>:  <Button type="submit" variant="secondary">저장</Button>}
+        { props.openedFlag ? <Button type="submit" variant="secondary">변경</Button> :  
+        <Button type="submit" variant="secondary">저장</Button>}
+        <div className="Subtitle-blank-20">
+        </div>
       </form>
     </Form>
   )

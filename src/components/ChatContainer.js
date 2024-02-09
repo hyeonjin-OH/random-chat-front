@@ -32,15 +32,20 @@ function ChatContainer(props){
     };
   },[]);
 
+  useEffect(()=>{
+    setRoomInfo(props.roomInfo)
+    console.log("ChatContainer setRoomInfo")
+  }, [props.roomInfo])
+
   useEffect(() => {
     if (stompClient) {
-      setRoomInfo(props.roomInfo)
       let headers = {Authorization: getCookie('accessToken')};
-      
+
       // 구독
       stompClient.connect(headers, () => {
-        stompClient.subscribe('/sub/chat/room/'+roomInfo.roomId, (message) => {
+        stompClient.subscribe('/sub/chat/room/'+roomInfo.roomKey, (message) => {
           const newMessage = JSON.parse(message.body);
+          console.log(newMessage)
           setChatHistory((prevHistory) => [...prevHistory, newMessage]);
         });
       });
@@ -57,7 +62,7 @@ function ChatContainer(props){
         roomKey: roomInfo.roomKey,
         sender: username,
         message: message,
-        sendTime: moment() }));
+        sendTime: moment().format('YYYY-MM-DDTHH:mm:sszz')}));
 
       // Input칸 초기화
       setMessage("");

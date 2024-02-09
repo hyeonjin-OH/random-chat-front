@@ -47,9 +47,8 @@ function ChatPage(){
   useEffect(() => {
     // .chat-text-box의 높이를 가져옴
     const textBoxHeight = document.querySelector('.chat-text-box').clientHeight;
-    const height = `${textBoxHeight / roomCount}px`;
+    const height = `${(textBoxHeight - 20) / roomCount}px`;
     setContainerHeight(height);
-    console.log("총높이: " +textBoxHeight + " roomCount: " + roomCount + " 나눠진 높이: " + height)
   }, [roomCount]);
 
 
