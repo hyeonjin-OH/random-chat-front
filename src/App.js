@@ -29,7 +29,6 @@ function App() {
   let navigate = useNavigate();
 
   useEffect(()=>{
-    console.log(userId)
   }, [userId])
 
   return (

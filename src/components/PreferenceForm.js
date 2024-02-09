@@ -129,8 +129,6 @@ function PreferenceForm(props){
     instance(getCookie("accessToken")).
     get(location.pathname)
     .then(response =>{ 
-      console.log("get PreferenceForm")
-      console.log(response.data)
       setRaid(response.data.preferRaid)
       setRole(response.data.preferRole)
       setTime(response.data.preferTime)
@@ -145,13 +143,10 @@ function PreferenceForm(props){
 
     data.uuId = userId;
     let tmp = JSON.stringify(data);
-    console.log("accessToken : " + getCookie("accessToken"))
-
     instance(getCookie("accessToken"))
     .post("/api/v1/prefer", data)
     .then(function(response){
         navigate("/api/v1/waitingroom")
-        console.log("save success")
         toast({
           titile: "저장 성공",
           description: "선호 매칭 저장에 성공하였습니다.",
@@ -256,9 +251,9 @@ function PreferenceForm(props){
         />
         { props.openedFlag ? <Button type="submit" variant="secondary">변경</Button> :  
         <Button type="submit" variant="secondary">저장</Button>}
-        <div className="Subtitle-blank-20">
-        </div>
       </form>
+      <div className="Subtitle-blank-20">
+      </div>
     </Form>
   )
 }

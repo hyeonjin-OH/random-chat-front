@@ -17,7 +17,6 @@ function WaitingRoom(props){
   const [progressBar, setProgressBar] = React.useState();
 
   useEffect(() => {
-    console.log("WaitingRoom Token:" + getCookie("accessToken"))
     instance(getCookie("accessToken"))
     .get("api/v1/waitingroom")
     .then(function(response){
@@ -29,11 +28,9 @@ function WaitingRoom(props){
   return(
     <>
     <PreferenceForm userid={userId} openedFlag={openedFlag}/>
-    <div className="Subtitle-blank-20">
       <Button onClick={()=>{
         navigate("/api/v1/chattingroom")
       }}>랜덤 매칭 시작</Button> 
-    </div>    
     <div className="Subtitle-blank-20">
     </div>
     </>

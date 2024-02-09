@@ -40,7 +40,7 @@ function ChatList(props){
         let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom")
         const _inputData = await res.data.map((r)=>(
           setLastIdx(lastIdx+1),
-          {
+          { 
             idx: lastIdx,
             createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
             lastMessage: r.lastMessage,
@@ -63,8 +63,8 @@ function ChatList(props){
 
   return(
     <Table>
-      <TableCaption>내 채팅방 (최대 4개) </TableCaption>
-      <TableCaption>채팅 나간 후 재입장 불가능 </TableCaption>
+      <TableCaption>내 채팅방은 최대 4개이며 나간 후 재입장 불가능 </TableCaption>
+      <TableCaption>기본 방이름은 개설시간이며 이름을 지을 수 있음</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead className="text-center w-[140px]">채팅방(개설시간)</TableHead>

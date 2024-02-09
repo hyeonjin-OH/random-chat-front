@@ -34,7 +34,6 @@ function ChatContainer(props){
 
   useEffect(()=>{
     setRoomInfo(props.roomInfo)
-    console.log("ChatContainer setRoomInfo")
   }, [props.roomInfo])
 
   useEffect(() => {
@@ -45,7 +44,6 @@ function ChatContainer(props){
       stompClient.connect(headers, () => {
         stompClient.subscribe('/sub/chat/room/'+roomInfo.roomKey, (message) => {
           const newMessage = JSON.parse(message.body);
-          console.log(newMessage)
           setChatHistory((prevHistory) => [...prevHistory, newMessage]);
         });
       });

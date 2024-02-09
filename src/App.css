@@ -137,7 +137,7 @@
   width: calc(100% - 400px);
   height: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: auto;
 }
 
 .chat-container-div{
@@ -146,12 +146,13 @@
   padding: 10px;
   display: flex;
   flex-direction: column;
+  min-width: 500px;
   /*  height: calc( 100%/2 );*/
 }
 
 .chat-message-show-area{
   width : 100%;
-  min-width: 500px;
+  min-width: 480px;
   flex: 1 0 auto;
   border: 1px solid #F2F2F2;
   background-color: #F2F2F2;

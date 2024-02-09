@@ -18,6 +18,8 @@ function ChatPage(){
     createdTime: ''
   }])
   const [containerHeight, setContainerHeight] = useState('auto');
+  const [containerWidth, setContainerWidth] = useState('auto');
+
 
   // ChatList에서 선택한 채팅방 정보 가져와서 셋팅
   const getRoomInfo = (key, id, time) =>{
@@ -47,19 +49,30 @@ function ChatPage(){
   useEffect(() => {
     // .chat-text-box의 높이를 가져옴
     const textBoxHeight = document.querySelector('.chat-text-box').clientHeight;
-    const height = `${(textBoxHeight - 20) / roomCount}px`;
-    setContainerHeight(height);
+    const textBoxWidth = document.querySelector('.chat-text-box').clientWidth;
+    
+    let twidth = textBoxWidth
+    // 위아래 margin때문에 -20
+    let theight = textBoxHeight-20
+    if(textBoxWidth >1050){
+      twidth = `${(textBoxWidth - 20) / roomCount}px`;
+    }
+    else{
+      theight = `${(textBoxHeight - 20) / roomCount}px`;
+    }
+    setContainerHeight(theight);
+    setContainerWidth(twidth);
   }, [roomCount]);
 
 
   return(
     <div className="chat-room-div">
       <div className="chat-list-tab">
-        <ChatList getRoomInfo={getRoomInfo} />
+        <ChatList key="chatList" getRoomInfo={getRoomInfo} />
       </div>
       <div className= "chat-text-box">
         {roomCount !== 0? (selectedRoom.map((r, idx)=>(
-          <div className="chat-container-div"  style={{ height: containerHeight }}>
+          <div className="chat-container-div"  style={{ height: containerHeight , width: containerWidth}}>
             <ChatContainer key={idx} roomInfo={r}/>
             </div>
             ))) : null

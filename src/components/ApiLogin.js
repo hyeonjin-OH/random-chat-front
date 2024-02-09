@@ -61,7 +61,6 @@ async function registryAPI(apikey, charactername, navigate, setUserId) {
 
 
 const onSilentRefresh = () => {
-  console.log("onSilentRefresh")
   data = {
     accessToken: localStorage.getItem("accessToken")
   }
