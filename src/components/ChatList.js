@@ -10,6 +10,13 @@ import { ImExit } from "react-icons/im";
 
 import 'moment/locale/ko';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip"
+
+import {
   Table,
   TableBody,
   TableCaption,
@@ -78,11 +85,23 @@ function ChatList(props){
           chat.createdTime !== '' &&
           <TableRow>
               <TableCell>{chat.createdTime}</TableCell>
-              <TableCell>{chat.lastMessage}</TableCell>
+              <TableCell>{ chat.lastMessage.length >= 20? 
+                  chat.lastMessage.substring(0,20) + "...": chat.lastMessage}</TableCell>
               <TableCellP><Button size="m" variant="outline" onClick={(e)=> clickHandler(idx, e) }>
                 OPEN</Button></TableCellP>
-              <TableCellP><Button size="m" variant="outline" onClick={(e)=> clickHandler(idx, e) }>
-              <ImExit /></Button></TableCellP>
+              <TableCellP>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="m" variant="outline" onClick={(e)=> clickHandler(idx, e) }>
+                    <ImExit color="red" stroke="black"/></Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>채팅방 나가기</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              </TableCellP>
             </TableRow>
           )):
           null

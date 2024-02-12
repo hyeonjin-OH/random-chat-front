@@ -3,7 +3,7 @@ import { Typography } from "~/components/ui/typography"
 import { IoIosCloseCircleOutline } from "react-icons/io";
 
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {instance, instanceE} from 'api/axiosApi'
 import {setCookie, getCookie} from 'app/cookie'
 import 'App.css';
@@ -15,6 +15,7 @@ import moment from 'moment';
 const ChattingRoom= (props)=> {
   
   const location = useLocation()
+  const scrollRef = useRef()
 
   let token = getCookie("accessToken")
   let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
@@ -44,6 +45,17 @@ const ChattingRoom= (props)=> {
     });
   }
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [props.chatHistory, props.getPastChat]);
+
+  const scrollToBottom = () => {
+      if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+  };
+
+
   const activeEnter = (e) => {
     if(e.key === "Enter") {
       props.setUsername(uuId)
@@ -57,7 +69,8 @@ const ChattingRoom= (props)=> {
         <div className='chat-message-show-area-text my-chat'>
           <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
           <span className ='chat-message-text-me'> {data.message} </span>
-        </div>)
+        </div>
+        )
     } else {
       return(
         <div className='chat-message-show-area-text other-chat'>
@@ -68,15 +81,19 @@ const ChattingRoom= (props)=> {
     }
   }
 
+  const closeRoom = ()=>{
+    props.closeRoom(props.roomInfo)
+  }
+
   return(
     <>
-    <div className="right-align-close"><IoIosCloseCircleOutline /></div>
+    <div className="right-align-close"><IoIosCloseCircleOutline onClick={closeRoom} /></div>
       <div>
         <Typography variant="h3"> 채팅방  [{props.roomInfo.createdTime} 개설]</Typography>
       </div>
       <div className="Subtitle-blank-20"></div>
       <div className="chat-message-show-area">
-        <div className="chat-message-text-area">
+        <div className="chat-message-text-area" ref={scrollRef}>
         {props.chatHistory && props.chatHistory.map((msg, index) =>
         setMessage(msg))}
         </div>
@@ -88,7 +105,7 @@ const ChattingRoom= (props)=> {
           onKeyPress={activeEnter}
         />
         <Button type="primary" onClick={props.handleEnter}>
-          Send
+          전송
         </Button>
       </div>
     </>

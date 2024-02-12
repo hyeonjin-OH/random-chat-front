@@ -54,16 +54,25 @@ function ChatPage(){
     let twidth = textBoxWidth
     // 위아래 margin때문에 -20
     let theight = textBoxHeight-20
-    if(textBoxWidth >1050){
+
+    if(textBoxWidth >1000){
       twidth = `${(textBoxWidth - 20) / roomCount}px`;
     }
     else{
       theight = `${(textBoxHeight - 20) / roomCount}px`;
     }
+    console.log("height: " + theight + " width: " + twidth) 
+
     setContainerHeight(theight);
     setContainerWidth(twidth);
+
   }, [roomCount]);
 
+  const closeRoom = (roomInfo) => {
+    // 방이 닫힐 때 roomCount를 감소시킴
+    setRoomCount(prevCount => prevCount - 1);
+    setSelectedRoom(prevRooms => prevRooms.filter(room => room.roomId !== roomInfo.roomId));
+  };
 
   return(
     <div className="chat-room-div">
@@ -73,7 +82,7 @@ function ChatPage(){
       <div className= "chat-text-box">
         {roomCount !== 0? (selectedRoom.map((r, idx)=>(
           <div className="chat-container-div"  style={{ height: containerHeight , width: containerWidth}}>
-            <ChatContainer key={idx} roomInfo={r}/>
+            <ChatContainer key={idx} roomInfo={r} closeRoom={closeRoom}/>
             </div>
             ))) : null
         }

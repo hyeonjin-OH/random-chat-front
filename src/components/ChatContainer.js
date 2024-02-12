@@ -84,6 +84,7 @@ function ChatContainer(props){
       handleEnter={handleEnter}
       setChatHistory={setChatHistory}
       getPastChat={getPastChat}
+      closeRoom={props.closeRoom}
     />
   </>
   )

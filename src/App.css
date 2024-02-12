@@ -137,7 +137,7 @@
   width: calc(100% - 400px);
   height: 100%;
   display: flex;
-  flex-direction: auto;
+  flex-wrap: wrap;
 }
 
 .chat-container-div{
@@ -146,13 +146,13 @@
   padding: 10px;
   display: flex;
   flex-direction: column;
-  min-width: 500px;
+  min-width: 450px;
   /*  height: calc( 100%/2 );*/
 }
 
 .chat-message-show-area{
   width : 100%;
-  min-width: 480px;
+  min-width: 420px;
   flex: 1 0 auto;
   border: 1px solid #F2F2F2;
   background-color: #F2F2F2;
@@ -226,4 +226,37 @@
 
 .right-align-close{
   margin-left: auto;
+}
+
+.chat-matching-modal-div{
+  position: fixed; /* 고정 위치로 설정하여 페이지 스크롤에 영향을 받지 않습니다. */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* 반투명한 배경색을 사용하여 모달 이외의 영역을 어둡게 만듭니다. */
+  z-index: 9999; /* 다른 요소 위에 표시될 수 있도록 높은 z-index 값을 설정합니다. */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chat-matching-modal-window{
+  padding: 10px;
+  width:500px;
+  height: 230px;
+  border: solid 1px #F2F2F2;
+  border-radius: 2%;
+  background-color: #F2F2F2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chat-matching-info-align{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  white-space: pre-line;
 }
