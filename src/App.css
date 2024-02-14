@@ -181,32 +181,50 @@
 
 .chat-message-show-area-text.other-chat{
   text-align: left;
-  
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end; 
 }
 
 .chat-message-show-area-text.my-chat{
   text-align: right;
-  
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end; 
+}
+
+.chat-message-text-div-other{
+  background-color: white;
+  padding: 5px;
+  border-radius: 8px;
+  max-width: 70%;
+  word-wrap: break-word;
 }
 
 .chat-message-text-other{
-  background-color: white;
-  padding: 7px;
+  display: block;
+  display: block;
+  padding: 0 5px;
+}
+
+.chat-message-text-div-me{
+  background-color: rgb(99, 3, 3);
+  padding: 5px;
   border-radius: 8px;
+  max-width: 70%;
+  word-wrap:break-word;
 }
 
 .chat-message-text-me{
-  background-color: rgb(99, 3, 3);
-  padding: 7px;
   color: white;  
-  border-radius: 8px;
+  display: block;
+  padding: 0 5px;
 }
 
 .chat-message-text-time{
   font-size: 12px;
-  margin-left: 4px;
-  margin-right: 4px;
-  position: flex;
+  margin-left: 3px;
+  margin-right: 3px;
   vertical-align: bottom;
 }
 

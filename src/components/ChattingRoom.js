@@ -67,14 +67,18 @@ const ChattingRoom= (props)=> {
     if( data.sender == uuId ) {
       return(
         <div className='chat-message-show-area-text my-chat'>
+          <div className="chat-message-text-div-me">
+            <span className ='chat-message-text-me'> {data.message} </span>
+          </div>
           <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
-          <span className ='chat-message-text-me'> {data.message} </span>
         </div>
         )
     } else {
       return(
         <div className='chat-message-show-area-text other-chat'>
-          <span className ='chat-message-text-other'> {data.message} </span>
+          <div className="chat-message-text-div-other">
+            <span className ='chat-message-text-other'> {data.message} </span>
+          </div>
           <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
       </div>
       )

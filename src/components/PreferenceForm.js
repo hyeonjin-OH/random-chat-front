@@ -132,6 +132,7 @@ function PreferenceForm(props){
       setRaid(response.data.preferRaid)
       setRole(response.data.preferRole)
       setTime(response.data.preferTime)
+      props.changePrefer(response.data)
     })
     .catch(error=>{
       console.log(error)
@@ -146,6 +147,8 @@ function PreferenceForm(props){
     instance(getCookie("accessToken"))
     .post("/api/v1/prefer", data)
     .then(function(response){
+      if(props.changePrefer)
+        props.changePrefer(response.data)
         navigate("/api/v1/waitingroom")
         toast({
           titile: "저장 성공",
