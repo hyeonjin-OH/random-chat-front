@@ -11,8 +11,6 @@ function ChatContainer(props){
   const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
-  const [roomKey, setRoomKey] = useState("");
-  const [roomId, setRoomId] = useState("");
   const [roomInfo, setRoomInfo] = useState({
     roomKey: '',
     roomId: 0,
@@ -24,8 +22,26 @@ function ChatContainer(props){
     const socket = new SockJS("http://localhost:8080/chat");
     const stomp = Stomp.over(socket);
 
-    // const stomp = Stomp.client("ws://localhost:8080/chat");
     setStompClient(stomp);
+    console.log("props.enter : " + props.enter)
+    if(props.enter == true && stomp){
+      console.log("ChatContainer - AfterMatching Open")
+      stomp.connect({}, () => {
+        stomp.send('/pub/chat/enter', {}, 
+        // ChatMessage DTO
+        JSON.stringify({ 
+          type: 'ENTER',
+          roomKey: roomInfo.roomKey,
+          sender: roomInfo.uuId,
+          message: "",
+          sendTime: moment().format('YYYY-MM-DDTHH:mm:sszz')}
+          ));
+      });
+    }
+    console.log("CHatContainer EXIT : " + props.exit)
+    if(props.exit == true && stomp){
+      exitRoom()
+    }
 
     return () => {
       stomp.disconnect();
@@ -35,6 +51,13 @@ function ChatContainer(props){
   useEffect(()=>{
     setRoomInfo(props.roomInfo)
   }, [props.roomInfo])
+
+  useEffect(()=>{
+    console.log("CHatContainer EXIT")
+    if(props.exit == true){
+      exitRoom()
+    }
+  }, [props.exit])
 
   useEffect(() => {
     if (stompClient) {
@@ -48,7 +71,7 @@ function ChatContainer(props){
         });
       });
     }
-  }, [stompClient, username]);
+  }, [stompClient, username, roomInfo]); 
 
   // chatting message 전송
   const handleEnter = () => {
@@ -66,6 +89,22 @@ function ChatContainer(props){
       setMessage("");
     }
   };
+
+
+  const exitRoom = () => {
+    if (stompClient) {
+      stompClient.send('/pub/chat/exit', {}, 
+      // ChatMessage DTO
+      JSON.stringify({ 
+        type: 'LEAVE',
+        roomKey: roomInfo.roomKey,
+        sender: roomInfo.uuId,
+        message: "",
+        sendTime: moment().format('YYYY-MM-DDTHH:mm:sszz')}));
+
+      stompClient.disconnect();
+    }
+  }
 
   // ChatList에서 대화방 선택하여 오픈 후 ChattingRoom에서 과거 대화내용 가져옴
   const getPastChat=(chat) =>{
@@ -85,6 +124,7 @@ function ChatContainer(props){
       setChatHistory={setChatHistory}
       getPastChat={getPastChat}
       closeRoom={props.closeRoom}
+      exitRoom={exitRoom}
     />
   </>
   )

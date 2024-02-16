@@ -2,7 +2,7 @@
 import * as React from "react"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000
+const TOAST_REMOVE_DELAY = 5000 /* 5s */
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -133,6 +133,7 @@ function toast({
 
 function useToast() {
   const [state, setState] = React.useState(memoryState)
+
   React.useEffect(() => {
     listeners.push(setState)
     return () => {
@@ -150,4 +151,4 @@ function useToast() {
   };
 }
 
-export { useToast, toast }
+export { useToast, toast, TOAST_REMOVE_DELAY }

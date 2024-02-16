@@ -18,6 +18,8 @@ import {
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import { useToast } from "~/components/ui/use-toast"
+import { Toaster } from "~/components/ui/toaster"
+
 
 const FormSchema = z.object({
   items: z.array(z.string()).refine((value) => value.some((item) => item), {
@@ -109,6 +111,10 @@ function PreferenceForm(props){
   const [pRaid, setRaid] = useState([]);
   const [pRole, setRole] = useState([]);
   const [pTime, setTime] = useState([]);
+  const [checkedRaidCount, setCheckedRaidCount] = useState(0);
+  const [checkedRoleCount, setCheckedRoleCount] = useState(0);
+
+
   const { toast } = useToast()
   
   const param = useParams();
@@ -132,6 +138,8 @@ function PreferenceForm(props){
       setRaid(response.data.preferRaid)
       setRole(response.data.preferRole)
       setTime(response.data.preferTime)
+      setCheckedRaidCount(response.data.preferRaid.length)
+      setCheckedRoleCount(response.data.preferRole.length)
       props.changePrefer(response.data)
     })
     .catch(error=>{
@@ -139,9 +147,21 @@ function PreferenceForm(props){
     });
   }, [location]);
 
+  // 체크박스가 선택될 때마다 선택된 체크박스의 수를 업데이트합니다.
+  const handleCheckboxChange = (checked, id, gubn) => {
+    if(gubn === "raid"){
+      const updatedCount = checked ? checkedRaidCount + 1 : checkedRaidCount - 1;
+      setCheckedRaidCount(updatedCount);
+    }
+    else if(gubn === "role"){
+      const updatedCount = checked ? checkedRoleCount + 1 : checkedRoleCount - 1;
+      setCheckedRoleCount(updatedCount);
+    }
+  };
+
   let navigate = useNavigate();
   const onSubmit = (data)=>{
-
+    
     data.uuId = userId;
     let tmp = JSON.stringify(data);
     instance(getCookie("accessToken"))
@@ -151,8 +171,8 @@ function PreferenceForm(props){
         props.changePrefer(response.data)
         navigate("/api/v1/waitingroom")
         toast({
-          titile: "저장 성공",
           description: "선호 매칭 저장에 성공하였습니다.",
+          duration: 1000,
         })
     });
   }
@@ -171,7 +191,7 @@ function PreferenceForm(props){
               </div>
               <div className="preference-form-area">
               <div className="preference-form-box">
-                <Typography variant="h2"> 레 이 드 </Typography>
+                <Typography variant="h2"> 선호 레이드 </Typography>
                 <div className="Set-center Subtitle-blank-10">
                 {preferRaid.map((item) => (
                   <FormField
@@ -187,7 +207,9 @@ function PreferenceForm(props){
                         <FormControl>
                           <Checkbox
                             checked={field.value?.includes(item.id)}
+                            disabled={checkedRaidCount >= 3 && !field.value.includes(item.id)}
                             onCheckedChange={(checked) => {
+                              handleCheckboxChange(checked, item.id, "raid")
                               return checked
                                 ? field.onChange([...field.value, item.id])
                                 : field.onChange(
@@ -209,7 +231,7 @@ function PreferenceForm(props){
                 </div>
 
                 <div className="Subtitle-blank-40">
-                  <Typography variant="h2">포 지 션</Typography>
+                  <Typography variant="h2">찾는 포지션</Typography>
                 </div>
 
                 <div className="Set-center Subtitle-blank-10">
@@ -227,7 +249,9 @@ function PreferenceForm(props){
                           <FormControl>
                             <Checkbox
                               checked={field.value?.includes(item.id)}
+                              disabled={checkedRoleCount >= 1 && !field.value.includes(item.id)}
                               onCheckedChange={(checked) => {
+                                handleCheckboxChange(checked, item.id, "role")
                                 return checked
                                   ? field.onChange([...field.value, item.id])
                                   : field.onChange(
@@ -255,7 +279,9 @@ function PreferenceForm(props){
         { props.openedFlag ? <Button type="submit" variant="secondary">변경</Button> :  
         <Button type="submit" variant="secondary">저장</Button>}
       </form>
+      <Typography variant="p">* 보다 빠른 매칭을 위해 레이드는 최대 3개, 포지션은 1개만 선택 가능합니다.</Typography>
       <div className="Subtitle-blank-20">
+        <Toaster />
       </div>
     </Form>
   )

@@ -54,7 +54,8 @@ function App() {
 
 
       <Routes>
-        <Route path="/" element={
+        <Route path="/"  element={<ChatPage />}/>
+        <Route path="/login" element={
           <ApiLogin setApiKey = {setApiKey} apikey={apikey} charactername={charactername} setCharacterName={setCharacterName}
         restext={restext} setResText={setResText} navigate={navigate} setUserId={setUserId}></ApiLogin>
         } />

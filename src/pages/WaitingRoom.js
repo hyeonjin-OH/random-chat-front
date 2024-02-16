@@ -18,11 +18,18 @@ function WaitingRoom(props){
   const openedFlag = "Y";
   let navigate = useNavigate();
   const {toast} = useToast();
-  const [progressBar, setProgressBar] = React.useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [prefer, setPrefer] = useState("");
   const [roomKey, setRoomKey] = useState("");
+  const [rematchFlag, setRematchFlag] = useState(false)
   const [stompClient, setStompClient] = useState(null);
+  const [preferData, setPreferData ] = useState({
+      uuId: "",
+      prefer: "",
+      optionCount: 3,
+      roomKey: "",
+      time: 0
+  })
 
   useEffect(() => {
     instance(getCookie("accessToken"))
@@ -45,9 +52,15 @@ function WaitingRoom(props){
 
       // 구독
       stompClient.connect(headers, () => {
-        stompClient.subscribe('/sub/matchStatus/'+roomKey, (message) => {
-          console.log("WaitingRoom socket 응답 : "+ message.body)
+        stompClient.subscribe('/sub/match/'+roomKey, (message) => {
+          closeModal()
+          stompClient.disconnect(); // 소켓 연결 종료
+          navigate("/api/v1/chattingroom", 
+                  {state: {enterChat: true, room: message.body}});
+
         });
+      }, (error) => {
+        console.error('Failed to connect to WebSocket:', error);
       });
     }
   }, [stompClient, roomKey]);
@@ -60,26 +73,74 @@ function WaitingRoom(props){
     let dec = base64.decode(payload)
     const uuId = JSON.parse(dec).sub
 
+    const val = prefer.substring(0, prefer.indexOf('-'))
+    const count = val.split(",").length;
+
     const data = {
       uuId: uuId,
       prefer: prefer,
-      optionCount: 3,
+      optionCount: count,
       roomKey: ""
     }
 
+    setPreferData(data)
     instance(getCookie("accessToken"))
     .post("api/v1/match", data)
     .then(response =>{
       //closeModal()
-      console.log("Match response: " + response.data)
-      setRoomKey(response.data)
       if(response.status == 200){
         closeModal()
-        navigate("/api/v1/chattingroom")
+        setRoomKey(response.data.roomKey)
+        navigate("/api/v1/chattingroom",
+                {state: {enterChat: true, room: response.data}})
       }
       else if(response.status == 202){
+        setRoomKey(response.data.roomKey)
+        setPreferData(prev => ({...prev, 
+                                roomKey: response.data.roomKey, 
+                                time: parseInt(response.data.time)}))
         openSocket();
       }
+    }).catch(error =>{
+      console.log("WaitingRoom match Error" + error.message)
+    });
+  }
+
+  const rematch = () => {
+    // PreferData에서 optionCount만 변경
+    setPreferData(prev => ({...prev, optionCount: 2}));
+    setRematchFlag(true)
+  };
+
+  useEffect(() => {
+    if (rematchFlag==true) {
+      setRematchFlag(false)
+
+      instance(getCookie("accessToken"))
+        .post("api/v1/rematch", preferData)
+        .then(response => {
+          if (response.status === 200) {
+            closeModal();
+            setRoomKey(response.data.roomKey);
+            navigate("/api/v1/chattingroom", 
+                    {state: {enterChat: true, room: response.data}});
+          } else if (response.status === 202) {
+            setRoomKey(response.data.roomKey);
+            openSocket();
+          }
+        })
+        .catch(error => {
+          console.log("WaitingRoom match Error" + error.message);
+        });
+    }
+  }, [rematchFlag, preferData]);
+  
+  const cancelMatch = () => {
+    instance(getCookie("accessToken"))
+    .post("api/v1/match/cancel", preferData)
+    .then(response =>{
+      closeModal()
+      stompClient.disconnect();   
     }).catch(error =>{
       console.log("WaitingRoom match Error" + error.message)
     });
@@ -99,7 +160,7 @@ function WaitingRoom(props){
     <PreferenceForm userid={userId} openedFlag={openedFlag} changePrefer={changePrefer}/>
       <Button onClick={()=>{ openModal();
       }}>랜덤 매칭 시작</Button> 
-    {isModalOpen && <WaitingModal isOpen={isModalOpen} closeModal={closeModal} />}
+    {isModalOpen && <WaitingModal isOpen={isModalOpen} closeModal={closeModal} rematch={rematch} cancelMatch={cancelMatch}/>}
     <div className="Subtitle-blank-20">
     </div>
     </>

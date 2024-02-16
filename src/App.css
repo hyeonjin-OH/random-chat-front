@@ -193,6 +193,12 @@
   align-items: flex-end; 
 }
 
+.chat-message-text-div-inform{
+  background-color: gray 0.5;
+  padding: 5px;
+  word-wrap: break-word;
+}
+
 .chat-message-text-div-other{
   background-color: white;
   padding: 5px;
@@ -226,6 +232,11 @@
   margin-left: 3px;
   margin-right: 3px;
   vertical-align: bottom;
+}
+
+.chat-message-text-inform{
+  font-size: 14px;
+  font-weight: bold;
 }
 
 .chat-message-input-area{
@@ -262,7 +273,7 @@
 .chat-matching-modal-window{
   padding: 10px;
   width:500px;
-  height: 230px;
+  height: 300px;
   border: solid 1px #F2F2F2;
   border-radius: 2%;
   background-color: #F2F2F2;
@@ -277,4 +288,8 @@
   align-items: center;
   text-align: center;
   white-space: pre-line;
+}
+
+.chat-matching-modal-button-div{
+  padding-top: 15px;
 }

@@ -5,8 +5,9 @@ import 'App.css';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import {instance, instanceE} from 'api/axiosApi'
-import {setCookie, getCookie} from 'app/cookie'
 import { ImExit } from "react-icons/im";
+import base64 from "base-64"
+import {setCookie, getCookie} from 'app/cookie'
 
 import 'moment/locale/ko';
 import {
@@ -41,9 +42,15 @@ function ChatList(props){
   const [lastIdx, setLastIdx] = useState(0)
   let location = useLocation();
 
+  let token = getCookie("accessToken")
+  let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
+  let dec = base64.decode(payload)
+  const uuId = JSON.parse(dec).sub
+
    useEffect(()=>{
      try{
       async function getData(){
+        setInputData([])
         let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom")
         const _inputData = await res.data.map((r)=>(
           setLastIdx(lastIdx+1),
@@ -55,7 +62,8 @@ function ChatList(props){
             roomKey: r.roomKey
           })
         )
-        setInputData(inputData.concat(_inputData))
+        setInputData(_inputData)
+        props.setRoomList(_inputData)
       }
       getData()
       
@@ -64,20 +72,56 @@ function ChatList(props){
     }
   },[location])
 
+  useEffect(()=>{
+    console.log(props.exit)
+    if(props.exit){
+      console.log(props.exitRoomInfo)
+      async function getData(){
+        const data = {
+          roomKey: props.exitRoomInfo.roomKey,
+          uuId: uuId
+        }
+        let res = await instance(getCookie("accessToken"))
+        .post("api/v1/chattingroom/exit", data)
+        const _inputData = await res.data.map((r)=>(
+          setLastIdx(lastIdx+1),
+          { 
+            idx: lastIdx,
+            createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
+            lastMessage: r.lastMessage,
+            roomId: r.roomId,
+            roomKey: r.roomKey
+          })
+        )
+        setInputData(_inputData)
+        props.setRoomList(_inputData)
+      }
+      getData()
+    }
+  }, [props.exit])
+
   const clickHandler=(idx, e)=>{
     props.getRoomInfo(inputData[idx].roomKey, inputData[idx].roomId, inputData[idx].createdTime)
+  }
+  
+  const exitHandler=(idx, e)=>{
+    props.getRoomInfo(inputData[idx].roomKey, inputData[idx].roomId, inputData[idx].createdTime)
+    const roomInfo =  {
+      roomKey: inputData[idx].roomKey,
+      roomId: inputData[idx].roomId,
+      createdTime: inputData[idx].createdTime
+    };
+    props.exitRoom(roomInfo)
   }
 
   return(
     <Table>
       <TableCaption>내 채팅방은 최대 4개이며 나간 후 재입장 불가능 </TableCaption>
-      <TableCaption>기본 방이름은 개설시간이며 이름을 지을 수 있음</TableCaption>
+      <TableCaption>기본 방이름은 개설시간입니다.</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead className="text-center w-[140px]">채팅방(개설시간)</TableHead>
           <TableHead className="text-center">마지막 대화</TableHead>
-          {/* <TableHead></TableHead>
-          <TableHead></TableHead> */}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -93,7 +137,7 @@ function ChatList(props){
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button size="m" variant="outline" onClick={(e)=> clickHandler(idx, e) }>
+                    <Button size="m" variant="outline" onClick={(e)=> exitHandler(idx, e) }>
                     <ImExit color="red" stroke="black"/></Button>
                   </TooltipTrigger>
                   <TooltipContent>
