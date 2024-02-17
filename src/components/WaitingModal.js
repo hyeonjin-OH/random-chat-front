@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from 'react';
-import { IoIosCloseCircleOutline } from "react-icons/io";
 import { Typography } from "~/components/ui/typography"
 import { PiTimerLight } from "react-icons/pi";
 import { Progress } from "~/components/ui/progress"

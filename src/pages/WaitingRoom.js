@@ -55,6 +55,8 @@ function WaitingRoom(props){
         stompClient.subscribe('/sub/match/'+roomKey, (message) => {
           closeModal()
           stompClient.disconnect(); // 소켓 연결 종료
+          console.log("DISCONNECT")
+          console.log(message.body)
           navigate("/api/v1/chattingroom", 
                   {state: {enterChat: true, room: message.body}});
 

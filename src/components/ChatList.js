@@ -1,5 +1,4 @@
 import { Button } from "~/components/ui/button"
-import { Typography } from "~/components/ui/typography"
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import 'App.css';
 import moment from 'moment';
@@ -73,9 +72,7 @@ function ChatList(props){
   },[location])
 
   useEffect(()=>{
-    console.log(props.exit)
     if(props.exit){
-      console.log(props.exitRoomInfo)
       async function getData(){
         const data = {
           roomKey: props.exitRoomInfo.roomKey,

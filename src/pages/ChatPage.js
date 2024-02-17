@@ -9,9 +9,8 @@ function ChatPage(){
   window.history.replaceState({}, '')
   
   const location = useLocation();
-  let { enterChat, room } = location.state || {};
   const [ exitChat, setExitChat ] = useState(false)
-
+  let { enterChat, room } = location.state || {};
   const [roomInfo, setRoomInfo] = useState({
     roomKey: '',
     roomId: 0,
@@ -35,7 +34,6 @@ function ChatPage(){
     
     const tmp = {roomKey: key, roomId: id, createdTime: time}
     setRoomInfo(tmp)
-
     if(roomCount === 0){
       setSelectedRoom([tmp])
       setRoomCount(roomCount+1)
@@ -56,12 +54,7 @@ function ChatPage(){
   }
 
   useEffect(()=>{
-    let { enterChat, room } = location.state || {};
-    console.log(location)
-    console.log("EnterChat : " + enterChat)
     if(room && enterChat){
-      console.log("ChatPage - After Matching enterRoom")
-      console.log(room)
       openRoom(room)
     }
   }, [])
@@ -75,34 +68,39 @@ function ChatPage(){
     // 위아래 margin때문에 -20
     let theight = textBoxHeight-20
 
-    if(textBoxWidth >1000){
-      twidth = `${(textBoxWidth - 20) / roomCount}px`;
+    let cwidth = Math.floor(twidth / 450)
+
+    if(roomCount > cwidth){
+      twidth = `${(textBoxWidth - 40) / cwidth}px`;
+      theight = `${(textBoxHeight - 20) / Math.ceil(roomCount/cwidth)}px`;
     }
     else{
-      theight = `${(textBoxHeight - 20) / roomCount}px`;
+      twidth = `${(textBoxWidth - 40) / roomCount}px`;
     }
-    console.log("height: " + theight + " width: " + twidth) 
 
     setContainerHeight(theight);
     setContainerWidth(twidth);
 
-    // console.log("EnterChat : " + enterChat)
-    // if(room && enterChat){
-    //   console.log("ChatPage - After Matching enterRoom")
-    //   console.log(room)
-    //   openRoom(room)
-    // }
-
   }, [roomCount]);
 
   const openRoom = (roomInfo) => {
-    const time = moment(roomInfo.createdTime).format('YYYY.MM.DD HH:mm')
-    getRoomInfo(roomInfo.roomKey, roomInfo.roomId, time)
+    const time = moment(roomInfo.createdTime).format('YYYY.MM.DD HH:mm')    
+    
+    console.log("TYPEOF : " + typeof roomInfo);
+
+    if(typeof roomInfo === 'string'){
+      const info = JSON.parse(roomInfo)
+      getRoomInfo(info.roomKey, info.roomId, time)
+    }
+    else{
+      getRoomInfo(roomInfo.roomKey, roomInfo.roomId, time)
+    }
+    
+    
   }
 
   const closeRoom = (roomInfo) => {
     // 방이 닫힐 때 roomCount를 감소시킴
-    console.log(selectedRoom)
     setRoomCount(prevCount => prevCount - 1);
     setSelectedRoom(prevRooms => prevRooms.filter(room => room.roomId !== roomInfo.roomId));
   };
@@ -116,14 +114,12 @@ function ChatPage(){
   }
 
   const setRoomList = (roomInfo) =>{
-    console.log("ChatPage RoomInfo setList")
     const room = roomInfo.map((r) => ({
       roomKey: r.roomKey,
       roomId: r.roomId,
       createdTime: r.createdTime
     })
     ) 
-    console.log(room)
     setAllRoom(room)
   }
 

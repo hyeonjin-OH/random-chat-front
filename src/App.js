@@ -6,6 +6,7 @@ import {Routes, Route, Link, useParams, useNavigate} from 'react-router-dom'
 import {PreferenceForm} from 'components/PreferenceForm';
 import WaitingRoom from 'pages/WaitingRoom';
 import { Typography } from "~/components/ui/typography"
+import NotFound from 'pages/NotFound'
 import {
   Menubar,
   MenubarContent,
@@ -14,7 +15,6 @@ import {
   MenubarTrigger,
   MenubarLabel,
 } from "~/components/ui/menubar"
-import { Toaster } from './~/components/ui/toaster';
 import { ChatPage } from 'pages/ChatPage';
 import { ApiLogin } from 'components/ApiLogin';
 
@@ -65,6 +65,7 @@ function App() {
         element={<WaitingRoom navigate={navigate} userId={userId}/>}/>
       <Route path="/api/v1/chattingroom"
         element={<ChatPage />}/>
+      <Route path="/*" element={<NotFound />} />
     </Routes>
     </div>
   );

@@ -1,9 +1,10 @@
 import { ChattingRoom } from 'components/ChattingRoom'
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {Stomp} from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { getCookie } from 'app/cookie';
 import moment from 'moment';
+import base64 from "base-64"
 
 function ChatContainer(props){
   
@@ -17,43 +18,35 @@ function ChatContainer(props){
     createdTime: ''
   });
 
+  let token = getCookie("accessToken")
+  let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
+  let dec = base64.decode(payload)
+  const uuId = JSON.parse(dec).sub
+
+
   useEffect(() => {
+
     // Connect to WebSocket - over func will deprecated
     const socket = new SockJS("http://localhost:8080/chat");
     const stomp = Stomp.over(socket);
 
     setStompClient(stomp);
-    console.log("props.enter : " + props.enter)
-    if(props.enter == true && stomp){
-      console.log("ChatContainer - AfterMatching Open")
-      stomp.connect({}, () => {
-        stomp.send('/pub/chat/enter', {}, 
-        // ChatMessage DTO
-        JSON.stringify({ 
-          type: 'ENTER',
-          roomKey: roomInfo.roomKey,
-          sender: roomInfo.uuId,
-          message: "",
-          sendTime: moment().format('YYYY-MM-DDTHH:mm:sszz')}
-          ));
-      });
-    }
-    console.log("CHatContainer EXIT : " + props.exit)
-    if(props.exit == true && stomp){
-      exitRoom()
-    }
 
-    return () => {
-      stomp.disconnect();
+    return () => {        
+      if (stomp && stomp.connected) {
+        stomp.disconnect();
+      }
     };
+  
   },[]);
 
   useEffect(()=>{
+    console.log("ChatContainer Props.roomInfo Change")
+    console.log(props.roomInfo)
     setRoomInfo(props.roomInfo)
   }, [props.roomInfo])
 
   useEffect(()=>{
-    console.log("CHatContainer EXIT")
     if(props.exit == true){
       exitRoom()
     }
@@ -65,6 +58,27 @@ function ChatContainer(props){
 
       // 구독
       stompClient.connect(headers, () => {
+
+        console.log("props.enter : " + props.enter)
+        if(props.enter == true && stompClient){
+          console.log("ChatContainer - STOMP SEND")
+          console.log(roomInfo)
+          stompClient.send('/pub/chat/enter', {}, 
+          // ChatMessage DTO
+          JSON.stringify({ 
+            type: 'ENTER',
+            roomKey: roomInfo.roomKey,
+            sender: uuId,
+            message: "",
+            sendTime: moment().format('YYYY-MM-DDTHH:mm:sszz')}
+          ));
+        }
+
+        console.log("CHatContainer EXIT : " + props.exit)
+        if(props.exit == true && stompClient){
+          exitRoom()
+        }
+
         stompClient.subscribe('/sub/chat/room/'+roomInfo.roomKey, (message) => {
           const newMessage = JSON.parse(message.body);
           setChatHistory((prevHistory) => [...prevHistory, newMessage]);

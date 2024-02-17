@@ -32,6 +32,7 @@ const ChattingRoom= (props)=> {
   }, [props.roomInfo]);
   
   const fetchData = async(roomId) => {
+    console.log("FetchData Check===================================")
     await instance(getCookie("accessToken"))
     .get("api/v1/chattingroom/"+roomId)
     .then(function(response){
@@ -64,24 +65,49 @@ const ChattingRoom= (props)=> {
   }
 
   const setMessage = (data) => {
-    if( data.sender == uuId ) {
-      return(
-        <div className='chat-message-show-area-text my-chat'>
-          <div className="chat-message-text-div-me">
-            <span className ='chat-message-text-me'> {data.message} </span>
+    if( data.sender === uuId ) {
+      if(data.type ==='ENTER' || data.type ==='LEAVE'){
+        return(
+          <div className='chat-message-show-area-text my-chat'>
+            <div className="chat-message-text-div-inform-me">
+              <span className ='chat-message-text-me'> {data.message} </span>
+            </div>
+            <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
           </div>
-          <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
+          )
+      }
+      else{
+        return(
+          <div className='chat-message-show-area-text my-chat'>
+            <div className="chat-message-text-div-me">
+              <span className ='chat-message-text-me'> {data.message} </span>
+            </div>
+            <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
+          </div>
+          )
+      }
+      
+    } else {
+      if(data.type ==='ENTER' || data.type ==='LEAVE'){
+        return(
+          <div className='chat-message-show-area-text other-chat'>
+            <div className="chat-message-text-div-inform-other">
+              <span className ='chat-message-text-other'> {data.message} </span>
+            </div>
+            <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
+          </div>
+          )
+      }
+      else{
+        return(
+          <div className='chat-message-show-area-text other-chat'>
+            <div className="chat-message-text-div-other">
+              <span className ='chat-message-text-other'> {data.message} </span>
+            </div>
+            <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
         </div>
         )
-    } else {
-      return(
-        <div className='chat-message-show-area-text other-chat'>
-          <div className="chat-message-text-div-other">
-            <span className ='chat-message-text-other'> {data.message} </span>
-          </div>
-          <span className='chat-message-text-time'>{moment(data.sendTime).format('MM.DD HH:mm')}</span>
-      </div>
-      )
+      }
     }
   }
 
