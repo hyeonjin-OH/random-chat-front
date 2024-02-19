@@ -101,7 +101,6 @@ function ChatContainer(props){
     }
   };
 
-
   const exitRoom = () => {
     console.log("ChatContainer exitRoom")
 

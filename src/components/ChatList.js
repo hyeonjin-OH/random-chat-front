@@ -1,9 +1,6 @@
 import { Button } from "~/components/ui/button"
-import { useParams, useNavigate, useLocation } from "react-router-dom";
 import 'App.css';
-import moment from 'moment';
 import { useEffect, useState } from 'react';
-import {instance, instanceE} from 'api/axiosApi'
 import { ImExit } from "react-icons/im";
 import base64 from "base-64"
 import {setCookie, getCookie} from 'app/cookie'

@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 import {instance, instanceE} from 'api/axiosApi'
-import {setCookie, getCookie} from 'app/cookie'
+import {getCookie} from 'app/cookie'
 import base64 from "base-64"
 
 function ChatMain(){
@@ -159,6 +159,7 @@ useEffect(()=>{
     }
     getData()
   }
+
 
   useEffect(() => {
     if (exitChat == true){
