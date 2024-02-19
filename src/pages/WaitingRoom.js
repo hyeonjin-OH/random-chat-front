@@ -109,8 +109,9 @@ function WaitingRoom(props){
   }
 
   const rematch = () => {
+    console.log(preferData)
     // PreferData에서 optionCount만 변경
-    setPreferData(prev => ({...prev, optionCount: 2}));
+    setPreferData(prev => ({...prev, optionCount: prev.optionCount - 1}));
     setRematchFlag(true)
   };
 

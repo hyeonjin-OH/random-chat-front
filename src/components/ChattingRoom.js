@@ -2,19 +2,16 @@ import { Button } from "~/components/ui/button"
 import { Typography } from "~/components/ui/typography"
 import { IoIosCloseCircleOutline } from "react-icons/io";
 
-import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState, useRef } from 'react';
-import {instance, instanceE} from 'api/axiosApi'
+import {instance} from 'api/axiosApi'
 import {setCookie, getCookie} from 'app/cookie'
 import 'App.css';
 import { Input } from "~/components/ui/input"
 import base64 from "base-64"
 import moment from 'moment';
 
-
 const ChattingRoom= (props)=> {
   
-  const location = useLocation()
   const scrollRef = useRef()
 
   let token = getCookie("accessToken")
@@ -32,9 +29,8 @@ const ChattingRoom= (props)=> {
   }, [props.roomInfo]);
   
   const fetchData = async(roomId) => {
-    console.log("FetchData Check===================================")
     await instance(getCookie("accessToken"))
-    .get("api/v1/chattingroom/"+roomId)
+    .get("api/v1/chattingroom/messages/"+roomId)
     .then(function(response){
       response.data.map((chat) => {
         props.getPastChat(chat);
@@ -55,7 +51,6 @@ const ChattingRoom= (props)=> {
           scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       }
   };
-
 
   const activeEnter = (e) => {
     if(e.key === "Enter") {
