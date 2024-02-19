@@ -15,7 +15,6 @@ import {
   MenubarTrigger,
   MenubarLabel,
 } from "~/components/ui/menubar"
-import { ChatPage } from 'pages/ChatPage';
 import { ChatMain } from 'pages/ChatMain';
 
 import { ApiLogin } from 'components/ApiLogin';
@@ -56,7 +55,7 @@ function App() {
 
 
       <Routes>
-        <Route path="/"  element={<ChatPage />}/>
+        <Route path="/"  element={<ChatMain />}/>
         <Route path="/login" element={
           <ApiLogin setApiKey = {setApiKey} apikey={apikey} charactername={charactername} setCharacterName={setCharacterName}
         restext={restext} setResText={setResText} navigate={navigate} setUserId={setUserId}></ApiLogin>
