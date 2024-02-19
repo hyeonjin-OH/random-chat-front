@@ -28,85 +28,38 @@ import {
 } from "~/components/ui/table"
 
 
-function ChatList(props){
-  
-  const [inputData, setInputData] = useState([{
-    idx:-1,
-    createdTime: '',
-    lastMessage: '',
-    roomId: -1,
-    roomKey: ''
-  }])
+function ChatList(props){  const [roomCount, setRoomCount] = useState(0)
+  const [allRoom, setAllRoom] = useState([])
 
   const [lastIdx, setLastIdx] = useState(0)
-  let location = useLocation();
 
   let token = getCookie("accessToken")
   let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
   let dec = base64.decode(payload)
   const uuId = JSON.parse(dec).sub
 
-   useEffect(()=>{
-     try{
-      async function getData(){
-        setInputData([])
-        let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom")
-        const _inputData = await res.data.map((r)=>(
-          setLastIdx(lastIdx+1),
-          { 
-            idx: lastIdx,
-            createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
-            lastMessage: r.lastMessage,
-            roomId: r.roomId,
-            roomKey: r.roomKey
-          })
-        )
-        setInputData(_inputData)
-        props.setRoomList(_inputData)
-      }
-      getData()
-      
+  useEffect(()=>{
+    console.log("ChatList2 props.allRoom")
+    try{
+      setAllRoom(props.allRoom)
+      setLastIdx(props.lastIdx)
     }catch(e){
       console.log(e.message)
     }
-  },[location])
-
-  useEffect(()=>{
-    if(props.exit){
-      async function getData(){
-        const data = {
-          roomKey: props.exitRoomInfo.roomKey,
-          uuId: uuId
-        }
-        let res = await instance(getCookie("accessToken"))
-        .post("api/v1/chattingroom/exit", data)
-        const _inputData = await res.data.map((r)=>(
-          setLastIdx(lastIdx+1),
-          { 
-            idx: lastIdx,
-            createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
-            lastMessage: r.lastMessage,
-            roomId: r.roomId,
-            roomKey: r.roomKey
-          })
-        )
-        setInputData(_inputData)
-        props.setRoomList(_inputData)
-      }
-      getData()
-    }
-  }, [props.exit])
+  },[props.allRoom])
 
   const clickHandler=(idx, e)=>{
-    props.getRoomInfo(inputData[idx].roomKey, inputData[idx].roomId, inputData[idx].createdTime)
+    props.getRoomInfo(allRoom[idx].roomKey, allRoom[idx].roomId, allRoom[idx].createdTime)
   }
-  
+
+
+  // 부모 ChatPage로 나가는 방 정보 전달
   const exitHandler=(idx, e)=>{
-    props.getRoomInfo(inputData[idx].roomKey, inputData[idx].roomId, inputData[idx].createdTime)
+    props.getRoomInfo(allRoom[idx].roomKey, allRoom[idx].roomId, allRoom[idx].createdTime)
     const roomInfo =  {
-      roomKey: inputData[idx].roomKey,
-      roomId: inputData[idx].roomId,
-      createdTime: inputData[idx].createdTime
+      roomKey: allRoom[idx].roomKey,
+      roomId: allRoom[idx].roomId,
+      createdTime: allRoom[idx].createdTime
     };
     props.exitRoom(roomInfo)
   }
@@ -122,7 +75,7 @@ function ChatList(props){
         </TableRow>
       </TableHeader>
       <TableBody>
-        {lastIdx !== 0 ? inputData.map((chat, idx) => (
+        {lastIdx !== 0 ? allRoom.map((chat, idx) => (
           chat.createdTime !== '' &&
           <TableRow>
               <TableCell>{chat.createdTime}</TableCell>

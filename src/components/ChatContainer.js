@@ -5,6 +5,7 @@ import SockJS from 'sockjs-client';
 import { getCookie } from 'app/cookie';
 import moment from 'moment';
 import base64 from "base-64"
+import {instance} from 'api/axiosApi'
 
 function ChatContainer(props){
   
@@ -34,35 +35,36 @@ function ChatContainer(props){
 
     return () => {        
       if (stomp && stomp.connected) {
-        stomp.disconnect();
+        //stomp.disconnect();
       }
     };
   
   },[]);
 
   useEffect(()=>{
-    console.log("ChatContainer Props.roomInfo Change")
-    console.log(props.roomInfo)
+    console.log("useEffect : props.roomInfo")
     setRoomInfo(props.roomInfo)
   }, [props.roomInfo])
 
   useEffect(()=>{
+    console.log("useEffect: props.exit, props.exitRoomInfo")
+    
     if(props.exit == true){
-      exitRoom()
+      fetchData(props.exitRoomInfo.roomId)
     }
-  }, [props.exit])
+  }, [props.exit, props.exitRoomInfo])
 
   useEffect(() => {
+
+    console.log("useEffect : stompClient, username, roomInfo")
     if (stompClient) {
       let headers = {Authorization: getCookie('accessToken')};
 
-      // 구독
       stompClient.connect(headers, () => {
 
         console.log("props.enter : " + props.enter)
         if(props.enter == true && stompClient){
-          console.log("ChatContainer - STOMP SEND")
-          console.log(roomInfo)
+
           stompClient.send('/pub/chat/enter', {}, 
           // ChatMessage DTO
           JSON.stringify({ 
@@ -72,11 +74,6 @@ function ChatContainer(props){
             message: "",
             sendTime: moment().format('YYYY-MM-DDTHH:mm:sszz')}
           ));
-        }
-
-        console.log("CHatContainer EXIT : " + props.exit)
-        if(props.exit == true && stompClient){
-          exitRoom()
         }
 
         stompClient.subscribe('/sub/chat/room/'+roomInfo.roomKey, (message) => {
@@ -106,18 +103,43 @@ function ChatContainer(props){
 
 
   const exitRoom = () => {
-    if (stompClient) {
-      stompClient.send('/pub/chat/exit', {}, 
-      // ChatMessage DTO
-      JSON.stringify({ 
-        type: 'LEAVE',
-        roomKey: roomInfo.roomKey,
-        sender: roomInfo.uuId,
-        message: "",
-        sendTime: moment().format('YYYY-MM-DDTHH:mm:sszz')}));
+    console.log("ChatContainer exitRoom")
 
+    if (stompClient && stompClient.connected) {
+      let headers = {Authorization: getCookie('accessToken')};
+      
+      // Send exit message
+      stompClient.send(
+        '/pub/chat/exit', 
+        headers, 
+        JSON.stringify({ 
+          type: 'LEAVE',
+          roomKey: roomInfo.roomKey,
+          sender: uuId,
+          message: "",
+          sendTime: moment().format('YYYY-MM-DDTHH:mm:sszz')
+        })
+      );      
+    
       stompClient.disconnect();
     }
+  }
+
+  const fetchData = async(roomId) => {
+    console.log("fetchData")
+    await instance(getCookie("accessToken"))
+    .get("api/v1/chattingroom/"+roomId)
+    .then(function(response){
+      if(response.data == null){
+        return
+      }
+      if(response.data.senderId != "" &&  response.data.receiverId != ""){
+        exitRoom()
+      }
+    })
+    .catch(error=>{
+      console.log(error.message)
+    });
   }
 
   // ChatList에서 대화방 선택하여 오픈 후 ChattingRoom에서 과거 대화내용 가져옴

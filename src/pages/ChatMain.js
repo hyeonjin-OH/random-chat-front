@@ -3,10 +3,18 @@ import { ChatList } from "components/ChatList"
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import moment from 'moment';
+import {instance, instanceE} from 'api/axiosApi'
+import {setCookie, getCookie} from 'app/cookie'
+import base64 from "base-64"
 
-function ChatPage(){
+function ChatMain(){
 
   window.history.replaceState({}, '')
+
+  let token = getCookie("accessToken")
+  let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
+  let dec = base64.decode(payload)
+  const uuId = JSON.parse(dec).sub
   
   const location = useLocation();
   const [ exitChat, setExitChat ] = useState(false)
@@ -24,6 +32,32 @@ function ChatPage(){
 
   const [containerHeight, setContainerHeight] = useState('auto');
   const [containerWidth, setContainerWidth] = useState('auto');  
+
+  const [lastIdx, setLastIdx] = useState(0)
+
+useEffect(()=>{
+  try{
+    async function getData(){
+      setAllRoom([])
+      let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom")
+      const _inputData = await res.data.map((r)=>(
+        setLastIdx(lastIdx+1),
+        { 
+          idx: lastIdx,
+          createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
+          lastMessage: r.lastMessage,
+          roomId: r.roomId,
+          roomKey: r.roomKey
+        })
+      )
+      setAllRoom(_inputData)
+    }
+    getData()
+    
+  }catch(e){
+    console.log(e.message)
+  }
+},[])
 
   // ChatList에서 선택한 채팅방 정보 가져와서 셋팅
   const getRoomInfo = (key, id, time) =>{
@@ -50,10 +84,10 @@ function ChatPage(){
   }
 
   useEffect(()=>{
-    if(room && enterChat){
+    if(room && enterChat == true){
       openRoom(room)
     }
-  }, [])
+  }, [enterChat])
 
   useEffect(() => {
     // .chat-text-box의 높이를 가져옴
@@ -93,6 +127,7 @@ function ChatPage(){
   }
 
   const closeRoom = (roomInfo) => {
+    console.log("closeRoom")
     // 방이 닫힐 때 roomCount를 감소시킴
     setRoomCount(prevCount => prevCount > 0 ? prevCount - 1 : 0);
     setSelectedRoom(prevRooms => prevRooms.filter(room => room.roomId !== roomInfo.roomId));
@@ -102,33 +137,41 @@ function ChatPage(){
   const exitRoom = (room) => {
     setExitRoomInfo(room)
     setExitChat(true)
+
+    async function getData(){
+      const data = {
+        roomKey: room.roomKey,
+        uuId: uuId
+      }
+      let res = await instance(getCookie("accessToken"))
+      .post("api/v1/chattingroom/exit", data)
+      const _inputData = await res.data.map((r)=>(
+        setLastIdx(lastIdx+1),
+        { 
+          idx: lastIdx,
+          createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
+          lastMessage: r.lastMessage,
+          roomId: r.roomId,
+          roomKey: r.roomKey
+        })
+      )
+      setAllRoom(_inputData)
+    }
+    getData()
   }
 
   useEffect(() => {
     if (exitChat == true){
     setRoomCount(prevCount => prevCount - 1);
     setSelectedRoom(prevRooms => prevRooms.filter(room => room.roomId !== roomInfo.roomId));
-    setAllRoom(prevRooms => prevRooms.filter(room => room.roomId !== allRoom.roomId)); 
     }
   }, [exitRoomInfo, exitChat]);
 
 
-  const setRoomList = (roomInfo) =>{
-
-    const room = roomInfo.map((r) => ({
-      roomKey: r.roomKey,
-      roomId: r.roomId,
-      createdTime: r.createdTime
-    })) 
-    setAllRoom(room)
-
-  }
-
   return(
     <div className="chat-room-div">
       <div className="chat-list-tab">
-        <ChatList key="chatList" setRoomList={setRoomList} getRoomInfo={getRoomInfo} allRoom={allRoom}
-                  exitRoom={exitRoom} exit={exitChat} exitRoomInfo ={exitRoomInfo}/>
+        <ChatList key="chatList" getRoomInfo={getRoomInfo} allRoom={allRoom} exitRoom={exitRoom}/>
       </div>
       <div className= "chat-text-box">
         {selectedRoom.map((r, idx) => (
@@ -142,4 +185,4 @@ function ChatPage(){
   )
 }
 
-export {ChatPage}
+export { ChatMain }

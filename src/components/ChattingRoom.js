@@ -4,7 +4,7 @@ import { IoIosCloseCircleOutline } from "react-icons/io";
 
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState, useRef } from 'react';
-import {instance, instanceE} from 'api/axiosApi'
+import {instance} from 'api/axiosApi'
 import {setCookie, getCookie} from 'app/cookie'
 import 'App.css';
 import { Input } from "~/components/ui/input"
@@ -32,9 +32,8 @@ const ChattingRoom= (props)=> {
   }, [props.roomInfo]);
   
   const fetchData = async(roomId) => {
-    console.log("FetchData Check===================================")
     await instance(getCookie("accessToken"))
-    .get("api/v1/chattingroom/"+roomId)
+    .get("api/v1/chattingroom/messages/"+roomId)
     .then(function(response){
       response.data.map((chat) => {
         props.getPastChat(chat);

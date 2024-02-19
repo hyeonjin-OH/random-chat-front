@@ -2,7 +2,7 @@
 import './App.css';
 import './app/globals.css'
 import { useEffect, useState } from 'react';
-import {Routes, Route, Link, useParams, useNavigate} from 'react-router-dom'
+import {Routes, Route, useNavigate} from 'react-router-dom'
 import {PreferenceForm} from 'components/PreferenceForm';
 import WaitingRoom from 'pages/WaitingRoom';
 import { Typography } from "~/components/ui/typography"
@@ -16,6 +16,8 @@ import {
   MenubarLabel,
 } from "~/components/ui/menubar"
 import { ChatPage } from 'pages/ChatPage';
+import { ChatMain } from 'pages/ChatMain';
+
 import { ApiLogin } from 'components/ApiLogin';
 
 
@@ -64,7 +66,7 @@ function App() {
       <Route path="/api/v1/waitingroom"
         element={<WaitingRoom navigate={navigate} userId={userId}/>}/>
       <Route path="/api/v1/chattingroom"
-        element={<ChatPage />}/>
+        element={<ChatMain />}/>
       <Route path="/*" element={<NotFound />} />
     </Routes>
     </div>
