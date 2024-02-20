@@ -27,19 +27,25 @@ import {
 
 function ChatList(props){  const [roomCount, setRoomCount] = useState(0)
   const [allRoom, setAllRoom] = useState([])
-
   const [lastIdx, setLastIdx] = useState(0)
-
-  let token = getCookie("accessToken")
-  let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
-  let dec = base64.decode(payload)
-  const uuId = JSON.parse(dec).sub
+  const [uuId, setUuId] = useState(null);
 
   useEffect(()=>{
-    console.log("ChatList2 props.allRoom")
+    let token = getCookie("accessToken")
+    if(token != null){
+      let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
+      let dec = base64.decode(payload)
+      const extractedUuId = JSON.parse(dec).sub;
+      setUuId(extractedUuId);
+    }    
+  }, [])
+
+  useEffect(()=>{
     try{
-      setAllRoom(props.allRoom)
-      setLastIdx(props.lastIdx)
+      if(props.allRoom.length != 0){
+        setAllRoom(props.allRoom)
+        setLastIdx(props.lastIdx)
+      }
     }catch(e){
       console.log(e.message)
     }

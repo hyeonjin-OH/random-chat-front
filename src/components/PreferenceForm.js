@@ -138,8 +138,8 @@ function PreferenceForm(props){
       setRaid(response.data.preferRaid)
       setRole(response.data.preferRole)
       setTime(response.data.preferTime)
-      setCheckedRaidCount(response.data.preferRaid.length)
-      setCheckedRoleCount(response.data.preferRole.length)
+      setCheckedRaidCount(response.data.preferRaid==null?0:response.data.preferRaid.length)
+      setCheckedRoleCount(response.data.preferRole.length==null?0:response.data.preferRole.length)
       props.changePrefer(response.data)
     })
     .catch(error=>{

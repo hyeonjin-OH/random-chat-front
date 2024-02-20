@@ -32,11 +32,13 @@ function WaitingRoom(props){
   })
 
   useEffect(() => {
-    instance(getCookie("accessToken"))
-    .get("api/v1/waitingroom")
-    .then(function(response){
-      console.log(response)
-    })
+    let token = getCookie("accessToken")
+    console.log("token : "+token)
+    if(token != null){
+
+    }else{
+      return(navigate("/login"))
+    }
   }, []);
 
   const openSocket=()=>{

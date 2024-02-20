@@ -1,18 +1,21 @@
 import axios from "axios";
 
+const serverURL = "http://54.180.62.214:8080"
+const localURL = "http://localhost:8080"
 
 export const instanceE =
   axios.create({
-    baseURL: "http://localhost:8080",
+    baseURL: localURL,
     withCredentials: true,
   });
 
 
 export const instance = (accessToken) =>
   axios.create({
-    baseURL: "http://localhost:8080",
+    baseURL: localURL,
     headers: {
-      Authorization: `${accessToken}`,
+      'Content-Type': 'application/json',
+      'Authorization': `${accessToken}`,
     },
     withCredentials: true,
   });

@@ -79,10 +79,10 @@ const onLoginSuccess = response => {
   console.log(response.data)
   // accessToken 설정
   setCookie("accessToken",response.data.accessToken);
+  setCookie("refreshToken",response.data.refreshToken);
   setCookie("uuid",response.data.use);
   localStorage.setItem("accessToken", response.data.accessToken);
 
-  console.log("TOKEN:"+ getCookie("accessToken"))
 
   // accessToken 만료하기 1분 전에 로그인 연장
   //setTimeout(onSilentRefresh, JWT_EXPIRRY_TIME - 60000);

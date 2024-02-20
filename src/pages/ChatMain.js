@@ -1,6 +1,6 @@
 import { ChatContainer } from "components/ChatContainer"
 import { ChatList } from "components/ChatList"
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 import {instance, instanceE} from 'api/axiosApi'
@@ -11,11 +11,8 @@ function ChatMain(){
 
   window.history.replaceState({}, '')
 
-  let token = getCookie("accessToken")
-  let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
-  let dec = base64.decode(payload)
-  const uuId = JSON.parse(dec).sub
-  
+  const [uuId, setUuId] = useState(null);
+  const navigate = useNavigate()
   const location = useLocation();
   const [ exitChat, setExitChat ] = useState(false)
   let { enterChat, room } = location.state || {};
@@ -24,6 +21,7 @@ function ChatMain(){
     roomId: 0,
     createdTime: ''
   });
+
   const [roomCount, setRoomCount] = useState(0)
   const [selectedRoom, setSelectedRoom] = useState([])
 
@@ -35,29 +33,45 @@ function ChatMain(){
 
   const [lastIdx, setLastIdx] = useState(0)
 
-useEffect(()=>{
-  try{
-    async function getData(){
-      setAllRoom([])
-      let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom")
-      const _inputData = await res.data.map((r)=>(
-        setLastIdx(lastIdx+1),
-        { 
-          idx: lastIdx,
-          createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
-          lastMessage: r.lastMessage,
-          roomId: r.roomId,
-          roomKey: r.roomKey
-        })
-      )
-      setAllRoom(_inputData)
+  useEffect(()=>{
+
+    let token = getCookie("accessToken")
+    if(token != null){
+      let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
+      let dec = base64.decode(payload)
+      const extractedUuId = JSON.parse(dec).sub;
+      setUuId(extractedUuId);
+    }else{
+      return(navigate("/login"))
     }
-    getData()
     
-  }catch(e){
-    console.log(e.message)
-  }
-},[])
+
+    try{
+      async function getData(){
+        setAllRoom([])
+        let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom")
+        
+        if(res.data.length > 0){
+          const _inputData = await res.data.map((r)=>(
+            setLastIdx(lastIdx+1),
+            { 
+              idx: lastIdx,
+              createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
+              lastMessage: r.lastMessage,
+              roomId: r.roomId,
+              roomKey: r.roomKey
+            })
+          )
+          setAllRoom(_inputData)
+        }
+      
+      }
+      getData()
+      
+    }catch(e){
+      console.log(e.message)
+    }
+  },[])
 
   // ChatList에서 선택한 채팅방 정보 가져와서 셋팅
   const getRoomInfo = (key, id, time) =>{

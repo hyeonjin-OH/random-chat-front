@@ -1,7 +1,7 @@
 import { Button } from "~/components/ui/button"
 import { Typography } from "~/components/ui/typography"
 import { IoIosCloseCircleOutline } from "react-icons/io";
-
+import {useNavigate} from 'react-router-dom'
 import { useEffect, useState, useRef } from 'react';
 import {instance} from 'api/axiosApi'
 import {setCookie, getCookie} from 'app/cookie'
@@ -13,13 +13,13 @@ import moment from 'moment';
 const ChattingRoom= (props)=> {
   
   const scrollRef = useRef()
-
   let token = getCookie("accessToken")
   let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
   let dec = base64.decode(payload)
   const uuId = JSON.parse(dec).sub
 
   const [roomId, setRoomId] = useState(0);
+
 
   useEffect(() => {
     if (props.roomInfo && props.roomInfo.roomId) {
