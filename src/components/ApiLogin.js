@@ -4,34 +4,105 @@ import 'app/globals.css'
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import {instance, instanceE} from 'api/axiosApi'
-import {Routes, Route, Link, useParams, useNavigate} from 'react-router-dom'
+import {useNavigate} from 'react-router-dom'
 import { Button } from "~/components/ui/button"
-import { Input, Input300, Input500 } from "~/components/ui/input"
-import { Label } from "~/components/ui/label"
+import { Input700 } from "~/components/ui/input"
 import {setCookie, getCookie} from "app/cookie"
 import { Typography } from "~/components/ui/typography"
-
+import { useToast } from "~/components/ui/use-toast"
+import { Toaster } from "~/components/ui/toaster"
 
 function ApiLogin(props){
   const openedflag= "N";
-  let [userId, setUserId] = useState("");
   let [apikey, setApiKey] = useState("eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyIsImtpZCI6IktYMk40TkRDSTJ5NTA5NWpjTWk5TllqY2lyZyJ9.eyJpc3MiOiJodHRwczovL2x1ZHkuZ2FtZS5vbnN0b3ZlLmNvbSIsImF1ZCI6Imh0dHBzOi8vbHVkeS5nYW1lLm9uc3RvdmUuY29tL3Jlc291cmNlcyIsImNsaWVudF9pZCI6IjEwMDAwMDAwMDAwOTM3NjQifQ.ZAjjmyUsYd_bJQUZq0hBOhEP1EShL_-FtN0LVI2Wimy-b0Bul_KANOiAbo0vN-oUmYuGY3VGmCrvQox101Ap7z5d7WQUEvOTwNyIvsb8wAOwb3NQegyHAkNYwluVgM1noon9QpkdqWngkxZF2a8QyIm1yP3ET5DXLmFKsYvlMm556loGWgWwCYIXBy6kLxyunv1-q7kkZeTtcHsYBIs7BhfF2QwHzwTaMWMaPSrV8UZRPJ38_2Q4Wf8n6nhY9xadZv5rBaoGYQstjEa-CPXPKbD2JWgv3WCERMGDB15X_kfnSUMSYm-9OR7nfrBQ-g9tVBX6UyFCfHnxh-GXS1FTtw");
-  let [charactername, setCharacterName] = useState("");
-
+  let [charactername, setCharacterName] = useState("abcde");
+  const { toast } = useToast()
   let navigate = useNavigate();
+
+  async function registryAPI(apikey, charactername) {
+
+    var authApiKey = "bearer " + apikey;
+    var apiUrl = "https://developer-lostark.game.onstove.com/characters/"+charactername+"/siblings"
+
+    try{
+      const response = await axios.get(
+        apiUrl,
+        {
+          headers : {
+            Accept : 'application/json',
+            'authorization' : authApiKey,
+          },
+        });
+      
+      // for (let i =0; i< response.data.length; i++){
+      //   response.data[i] == charactername ? console.log(response.data[i]) : null
+      // }
+  
+    // 차후에 캐릭터이름 쓸 수도 있으니 nickName은 살려둠
+    const registerData = {
+      id: null,
+      apiKey: apikey,
+      nickName: ""};
+  
+      await instanceE.post("/register", registerData)
+        .then(onLoginSuccess);
+    }catch(err){
+      if (err.response && err.response.status === 401) {
+        // 401 Unauthorized 에러인 경우
+        toast({
+          variant: "destructive",
+          title: "인증이 실패했습니다. API 키를 확인해 주세요.",
+          duration: 3000,
+        })
+      }else {
+        // 기타 예외인 경우
+        toast({
+          variant: "destructive",
+          description: "인증 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+          duration: 3000,
+        })
+      }
+    }
+  }
+  
+  const onSilentRefresh = () => {
+    data = {
+      accessToken: localStorage.getItem("accessToken")
+    }
+    console.log(data)
+    instance(getCookie("accessToken"))
+      .post('/reissue', data)
+        .then(onLoginSuccess)
+        .catch(error => {
+            // ... 로그인 실패 처리
+        });
+  }
+  
+  const onLoginSuccess = response => {
+    console.log("onLoginSuccess")
+    console.log(response.data)
+    // accessToken 설정
+    setCookie("accessToken",response.data.accessToken);
+    setCookie("refreshToken",response.data.refreshToken);
+    setCookie("uuid",response.data.use);
+    localStorage.setItem("accessToken", response.data.accessToken);
+  
+    // accessToken 만료하기 1분 전에 로그인 연장
+    //setTimeout(onSilentRefresh, JWT_EXPIRRY_TIME - 60000);
+    const navUri = "/api/v1/prefer"
+    navigate(navUri);
+  }
 
   return(
     <div className="register-form">
     <div className="register-form-div">
       <Typography variant="h5">API키 </Typography>
-      <Input500 type="text" className = "api-key"  defaultValue = {props.apikey}
-        onChange={(e)=>props.setApiKey(e.target.value)}/>
-      <Typography variant="h5">캐릭터명</Typography>
-      <Input300 type="text" className="main-character-name"
-        onChange={(e)=>props.setCharacterName(e.target.value)}/>
+      <Input700 type="text" style={{width:'35rem'}} defaultValue = {apikey}  onChange={(e)=>setApiKey(e.target.value)}/>
+      {/* <Typography variant="h5">캐릭터명</Typography>
+      <Input300 type="text" className="main-character-name" onChange={(e)=>setCharacterName(e.target.value)}/> */}
       <div className='Subtitle-blank-10'>
-      <Button
-      onClick={()=>registryAPI(props.apikey, props.charactername, props.navigate, props.setUserId)}>로스트아크 유저 등록/로그인</Button>
+      <Button onClick={()=>
+        registryAPI(apikey, charactername)}>로스트아크 유저 등록/로그인</Button>
       </div>
     </div>
     <div className='Subtitle-blank-40'>
@@ -46,80 +117,15 @@ function ApiLogin(props){
       </div>
       <div className='Subtitle-blank-20' style={{display:'flex', flexDirection:'column'}}>
       <Typography variant="inlineCode">API키의 경우, 단순 로스트아크 유저(STOVE) 확인 용이며 암호화 되어 저장됩니다.</Typography>
-      <Typography variant="inlineCode">캐릭터 명은 API인증을 위한 요소일 뿐 저장되지 않습니다. 유효한 캐릭터명을 입력해주세요.</Typography>
+      {/* <Typography variant="inlineCode">캐릭터 명은 API인증을 위한 요소일 뿐 저장되지 않습니다. 유효한 캐릭터명을 입력해주세요.</Typography> */}
       </div>
-
     </div>
+    <Toaster />
   </div>
   )
 }
 
 
-async function registryAPI(apikey, charactername, navigate, setUserId) {
 
-  var authApiKey = "bearer " + apikey;
-  var apiUrl = "https://developer-lostark.game.onstove.com/characters/"+charactername+"/siblings"
-
-
-const onSilentRefresh = () => {
-  data = {
-    accessToken: localStorage.getItem("accessToken")
-  }
-  console.log(data)
-  instance(getCookie("accessToken"))
-    .post('/reissue', data)
-      .then(onLoginSuccess)
-      .catch(error => {
-          // ... 로그인 실패 처리
-      });
-}
-
-const onLoginSuccess = response => {
-  console.log("onLoginSuccess")
-  console.log(response.data)
-  // accessToken 설정
-  setCookie("accessToken",response.data.accessToken);
-  setCookie("refreshToken",response.data.refreshToken);
-  setCookie("uuid",response.data.use);
-  localStorage.setItem("accessToken", response.data.accessToken);
-
-
-  // accessToken 만료하기 1분 전에 로그인 연장
-  //setTimeout(onSilentRefresh, JWT_EXPIRRY_TIME - 60000);
-  const navUri = "/api/v1/prefer"
-  navigate(navUri);
-}
-
-  try{
-    const response = await axios.get(
-      apiUrl,
-      {
-        headers : {
-          Accept : 'application/json',
-          'authorization' : authApiKey,
-        },
-      });
-
-    if (response == null){
-      return Promise.reject(new Error('존재하지 않는 캐릭터명입니다.'));
-    }
-    
-    for (let i =0; i< response.data.length; i++){
-      response.data[i] == charactername ? console.log(response.data[i]) : null
-    }
-
-  const registerData = {
-    id: null,
-    apiKey: apikey,
-    nickName: charactername,
-    mainCharacter: charactername
-  };
-
-    await instanceE.post("/register",registerData)
-      .then(onLoginSuccess);
-  }catch(err){
-    console.log("err: "+err)
-  }
-}
 
 export {ApiLogin}

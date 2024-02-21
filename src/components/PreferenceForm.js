@@ -113,7 +113,7 @@ function PreferenceForm(props){
   const [pTime, setTime] = useState([]);
   const [checkedRaidCount, setCheckedRaidCount] = useState(0);
   const [checkedRoleCount, setCheckedRoleCount] = useState(0);
-
+  const [justChatting, setJustChatting] = useState(false)
 
   const { toast } = useToast()
   
@@ -135,11 +135,13 @@ function PreferenceForm(props){
     instance(getCookie("accessToken")).
     get(location.pathname)
     .then(response =>{ 
+      console.log(response.data.preferRole)
       setRaid(response.data.preferRaid)
-      setRole(response.data.preferRole)
+      setRole(JSON.stringify(response.data.preferRole)==="[111]"?[]:response.data.preferRole)
       setTime(response.data.preferTime)
       setCheckedRaidCount(response.data.preferRaid==null?0:response.data.preferRaid.length)
-      setCheckedRoleCount(response.data.preferRole.length==null?0:response.data.preferRole.length)
+      setCheckedRoleCount(response.data.preferRole==null?0:
+                            JSON.stringify(response.data.preferRole)==="[111]"?0:response.data.preferRole.length)
       props.changePrefer(response.data)
     })
     .catch(error=>{
@@ -150,8 +152,21 @@ function PreferenceForm(props){
   // 체크박스가 선택될 때마다 선택된 체크박스의 수를 업데이트합니다.
   const handleCheckboxChange = (checked, id, gubn) => {
     if(gubn === "raid"){
-      const updatedCount = checked ? checkedRaidCount + 1 : checkedRaidCount - 1;
-      setCheckedRaidCount(updatedCount);
+      if(id === 1){
+        if(checked){
+          setCheckedRaidCount(1);
+          setJustChatting(true)
+        }
+        else{
+          setCheckedRaidCount(0);
+          setJustChatting(false)
+        }
+          
+      }else{
+        setJustChatting(false)
+        const updatedCount = checked ? checkedRaidCount + 1 : checkedRaidCount - 1;
+        setCheckedRaidCount(updatedCount);
+      }
     }
     else if(gubn === "role"){
       const updatedCount = checked ? checkedRoleCount + 1 : checkedRoleCount - 1;
@@ -160,8 +175,29 @@ function PreferenceForm(props){
   };
 
   let navigate = useNavigate();
+
   const onSubmit = (data)=>{
-    
+
+    if(data.preferRaid.length == 0 || data.preferRole.length == 0){
+      console.log(JSON.stringify(data.preferRaid))
+      console.log(JSON.stringify(data.preferRaid) === "1" && data.preferRole.length == 0)
+      if(!(JSON.stringify(data.preferRaid) === "[1]" && data.preferRole.length == 0)){
+        return(
+          toast({
+            variant: "destructive",
+            description: "레이드와 포지션 모두 최소 1개는 선택해야합니다.",
+            duration: 3000,
+          })
+        )
+      }
+      else{
+        data.preferRole = [111]
+      }
+    }
+
+    data.preferRaid.sort();
+    console.log("Prefer data")
+    console.log(data)
     data.uuId = userId;
     let tmp = JSON.stringify(data);
     instance(getCookie("accessToken"))
@@ -207,8 +243,13 @@ function PreferenceForm(props){
                         <FormControl>
                           <Checkbox
                             checked={field.value?.includes(item.id)}
-                            disabled={checkedRaidCount >= 3 && !field.value.includes(item.id)}
+                            disabled={(checkedRaidCount >= 3 && !field.value.includes(item.id)) 
+                                        || (item.id !== 1 && field.value.includes(1))}
                             onCheckedChange={(checked) => {
+                              //모코코 선택 시 단순채팅으로 취급, 다른 레이드는 체크 해제
+                              if(item.id === 1){
+                                field.value = [];
+                              }
                               handleCheckboxChange(checked, item.id, "raid")
                               return checked
                                 ? field.onChange([...field.value, item.id])
@@ -249,7 +290,8 @@ function PreferenceForm(props){
                           <FormControl>
                             <Checkbox
                               checked={field.value?.includes(item.id)}
-                              disabled={checkedRoleCount >= 1 && !field.value.includes(item.id)}
+                              disabled={(checkedRoleCount >= 1 && !field.value.includes(item.id))
+                                        || (justChatting == true)}
                               onCheckedChange={(checked) => {
                                 handleCheckboxChange(checked, item.id, "role")
                                 return checked
@@ -280,6 +322,7 @@ function PreferenceForm(props){
         <Button type="submit" variant="secondary">저장</Button>}
       </form>
       <Typography variant="p">* 보다 빠른 매칭을 위해 레이드는 최대 3개, 포지션은 1개만 선택 가능합니다.</Typography>
+      <Typography variant="p"> 단순 채팅만 하고싶다면 '모코코'만 선택 하시고 저장 후 매칭해주시면 됩니다.</Typography>
       <div className="Subtitle-blank-20">
         <Toaster />
       </div>
