@@ -10,9 +10,9 @@ import { WaitingModal } from "components/WaitingModal";
 import base64 from "base-64"
 import {Stomp} from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { Toaster } from "~/components/ui/toaster";
 
 function WaitingRoom(props){
-
   const params = useParams();
   const userId = params.id;
   const openedFlag = "Y";
@@ -33,7 +33,6 @@ function WaitingRoom(props){
 
   useEffect(() => {
     let token = getCookie("accessToken")
-    console.log("token : "+token)
     if(token != null){
 
     }else{
@@ -106,7 +105,28 @@ function WaitingRoom(props){
         openSocket();
       }
     }).catch(error =>{
-      console.log("WaitingRoom match Error" + error.message)
+      if(error.response && error.response.status === 400){
+        closeModal()
+
+        toast(
+          {
+            variant: "destructive",
+            description: error.response.data,
+            duration: 3000,
+          }
+        )
+      }
+      else{
+        closeModal()
+
+        toast(
+          {
+            variant: "destructive",
+            description: error.response.data,
+            duration: 3000,
+          }
+        )
+      }
     });
   }
 
@@ -135,8 +155,13 @@ function WaitingRoom(props){
           }
         })
         .catch(error => {
-          console.log("WaitingRoom match Error" + error.message);
-        });
+          toast(
+            {
+              variant: "destructive",
+              description: error.response.data,
+              duration: 3000,
+            }
+        )});
     }
   }, [rematchFlag, preferData]);
   
@@ -147,7 +172,7 @@ function WaitingRoom(props){
       closeModal()
       stompClient.disconnect();   
     }).catch(error =>{
-      console.log("WaitingRoom match Error" + error.message)
+      closeModal()
     });
   }
 
@@ -168,6 +193,7 @@ function WaitingRoom(props){
     {isModalOpen && <WaitingModal isOpen={isModalOpen} closeModal={closeModal} rematch={rematch} cancelMatch={cancelMatch}/>}
     <div className="Subtitle-blank-20">
     </div>
+    <Toaster/>
     </>
   )
 }

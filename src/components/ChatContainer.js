@@ -35,19 +35,18 @@ function ChatContainer(props){
 
     return () => {        
       if (stomp && stomp.connected) {
-        //stomp.disconnect();
+        console.log("stomp check")
+        stomp.disconnect();
       }
     };
   
   },[]);
 
   useEffect(()=>{
-    console.log("useEffect : props.roomInfo")
     setRoomInfo(props.roomInfo)
   }, [props.roomInfo])
 
   useEffect(()=>{
-    console.log("useEffect: props.exit, props.exitRoomInfo")
     
     if(props.exit == true){
       fetchData(props.exitRoomInfo.roomId)
@@ -56,7 +55,6 @@ function ChatContainer(props){
 
   useEffect(() => {
 
-    console.log("useEffect : stompClient, username, roomInfo")
     if (stompClient) {
       let headers = {Authorization: getCookie('accessToken')};
 

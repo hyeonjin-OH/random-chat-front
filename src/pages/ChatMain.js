@@ -26,7 +26,8 @@ function ChatMain(){
   const [selectedRoom, setSelectedRoom] = useState([])
 
   const [allRoom, setAllRoom] = useState([])
-  const [exitRoomInfo, setExitRoomInfo] = useState()
+  const [closeRoomInfo, setCloseRoomInfo] = useState(null)
+  const [exitRoomInfo, setExitRoomInfo] = useState(null)
 
   const [containerHeight, setContainerHeight] = useState('auto');
   const [containerWidth, setContainerWidth] = useState('auto');  
@@ -45,9 +46,8 @@ function ChatMain(){
       return(navigate("/login"))
     }
     
-
-    try{
-      async function getData(){
+    async function getData(){
+      try{
         setAllRoom([])
         let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom")
         
@@ -64,13 +64,17 @@ function ChatMain(){
           )
           setAllRoom(_inputData)
         }
-      
+      }      
+    catch(e){
+      console.log("ChatMain error Response")
+      console.log(e.respone)
+      if(e.response && e.response.status == 401){
+        navigate("/login")
       }
-      getData()
-      
-    }catch(e){
-      console.log(e.message)
     }
+  }
+  getData()
+
   },[])
 
   // ChatList에서 선택한 채팅방 정보 가져와서 셋팅
@@ -143,6 +147,7 @@ function ChatMain(){
   const closeRoom = (roomInfo) => {
     console.log("closeRoom")
     // 방이 닫힐 때 roomCount를 감소시킴
+    setCloseRoomInfo(roomInfo)
     setRoomCount(prevCount => prevCount > 0 ? prevCount - 1 : 0);
     setSelectedRoom(prevRooms => prevRooms.filter(room => room.roomId !== roomInfo.roomId));
   };
@@ -191,7 +196,7 @@ function ChatMain(){
       <div className= "chat-text-box">
         {selectedRoom.map((r, idx) => (
           <div className="chat-container-div" style={{ height: containerHeight, width: containerWidth }}>
-            <ChatContainer key={idx} roomInfo={r} closeRoom={closeRoom} enter={enterChat} 
+            <ChatContainer key={idx} roomInfo={r} closeRoom={closeRoom} enter={enterChat} closeRoomInfo={closeRoomInfo}
               exit={exitChat} exitRoomInfo={exitRoomInfo} />
           </div>
         ))}
