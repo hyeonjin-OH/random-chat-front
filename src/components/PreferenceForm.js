@@ -6,6 +6,8 @@ import { Typography } from "~/components/ui/typography"
 import { Checkbox } from "~/components/ui/checkbox"
 import {setCookie, getCookie} from 'app/cookie'
 import {instance, instanceE} from 'api/axiosApi'
+import { isAccessTokenExpired } from 'app/isAccessTokenExpired';
+
 import {
   Form,
   FormControl,
@@ -131,25 +133,47 @@ function PreferenceForm(props){
     },
   })
 
+
+  const checkAccessToken = async () => {
+    
+    if(isAccessTokenExpired(getCookie("accessToken"))){
+      const refreshToken = localStorage.getItem("refreshToken")
+      await instance(refreshToken)
+        .post('/reissue')
+          .then(response =>{
+            const newAccessToken = response.data;
+            localStorage.setItem("accessToken", newAccessToken);
+            setCookie("accessToken", newAccessToken)
+          })
+          .catch(error => {
+            navigate("/login") 
+          });
+    }
+  }
+
   useEffect(() => {
-    instance(getCookie("accessToken")).
-    get(location.pathname)
-    .then(response =>{ 
-      console.log(response.data.preferRole)
-      setRaid(response.data.preferRaid)
-      setRole(JSON.stringify(response.data.preferRole)==="[111]"?[]:response.data.preferRole)
-      setTime(response.data.preferTime)
-      setCheckedRaidCount(response.data.preferRaid==null?0:response.data.preferRaid.length)
-      setCheckedRoleCount(response.data.preferRole==null?0:
-                            JSON.stringify(response.data.preferRole)==="[111]"?0:response.data.preferRole.length)
-      props.changePrefer(response.data)
-    })
-    .catch(error=>{
-      console.log(error)
-      if(error.response && error.response.status == 401){
-        navigate("/login")
+  const fetchData = async () => {
+    try {
+      await checkAccessToken(); 
+
+      const response = await instance(getCookie("accessToken")).get(location.pathname);
+      if (response.data) {
+        setRaid(response.data.preferRaid);
+        setRole(JSON.stringify(response.data.preferRole) === "[111]" ? [] : response.data.preferRole);
+        setTime(response.data.preferTime);
+        setCheckedRaidCount(response.data.preferRaid === null ? 0 : response.data.preferRaid.length);
+        setCheckedRoleCount(response.data.preferRole === null ? 0 :
+          JSON.stringify(response.data.preferRole) === "[111]" ? 0 : response.data.preferRole.length);
+        props.changePrefer(response.data);
       }
-    });
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        navigate("/login");
+      }
+    }
+  };
+
+  fetchData();
   }, [location]);
 
   // 체크박스가 선택될 때마다 선택된 체크박스의 수를 업데이트합니다.
@@ -179,7 +203,7 @@ function PreferenceForm(props){
 
   let navigate = useNavigate();
 
-  const onSubmit = (data)=>{
+  const onSubmit = async(data)=>{
 
     if(data.preferRaid.length == 0 || data.preferRole.length == 0){
       console.log(JSON.stringify(data.preferRaid))
@@ -199,21 +223,29 @@ function PreferenceForm(props){
     }
 
     data.preferRaid.sort();
-    console.log("Prefer data")
-    console.log(data)
     data.uuId = userId;
     let tmp = JSON.stringify(data);
-    instance(getCookie("accessToken"))
-    .post("/api/v1/prefer", data)
-    .then(function(response){
-      if(props.changePrefer)
-        props.changePrefer(response.data)
-        navigate("/api/v1/waitingroom")
-        toast({
-          description: "선호 매칭 저장에 성공하였습니다.",
-          duration: 1000,
-        })
-    });
+
+    await checkAccessToken()
+
+    try {
+      const response = await instance(getCookie("accessToken"))
+      .post("/api/v1/prefer", data);
+      if (props.changePrefer) {
+        props.changePrefer(response.data);
+      }
+      navigate("/api/v1/waitingroom");
+      toast({
+        description: "선호 매칭 저장에 성공하였습니다.",
+        duration: 1000,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        description: "선호 매칭 저장에 실패하였습니다.",
+        duration: 3000,
+      });    
+    }
   }
 
   return(

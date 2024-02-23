@@ -15,7 +15,7 @@ export const instance = (accessToken) =>
     baseURL: localURL,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `${accessToken}`,
+      'Authorization': `Bearer ${accessToken}`,
     },
     withCredentials: true,
   });

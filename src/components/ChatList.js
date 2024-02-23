@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ImExit } from "react-icons/im";
 import base64 from "base-64"
 import {setCookie, getCookie} from 'app/cookie'
+import { useNavigate } from "react-router-dom";
 
 import 'moment/locale/ko';
 import {
@@ -30,14 +31,19 @@ function ChatList(props){  const [roomCount, setRoomCount] = useState(0)
   const [lastIdx, setLastIdx] = useState(0)
   const [uuId, setUuId] = useState(null);
 
+  const navigate = useNavigate()
+
   useEffect(()=>{
-    let token = getCookie("accessToken")
-    if(token != null){
+    const token = getCookie("accessToken")
+    if(token && token != "undefined"){
       let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
       let dec = base64.decode(payload)
       const extractedUuId = JSON.parse(dec).sub;
       setUuId(extractedUuId);
-    }    
+    }else{
+      
+      navigate("/login")
+    }
   }, [])
 
   useEffect(()=>{

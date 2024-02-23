@@ -11,6 +11,7 @@ import base64 from "base-64"
 import {Stomp} from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Toaster } from "~/components/ui/toaster";
+import { isAccessTokenExpired } from 'app/isAccessTokenExpired';
 
 function WaitingRoom(props){
   const params = useParams();
@@ -31,6 +32,24 @@ function WaitingRoom(props){
       time: 0
   })
 
+  const checkAccessToken = async () => {
+    
+    if(isAccessTokenExpired(getCookie("accessToken"))){
+
+      const refreshToken = localStorage.getItem("refreshToken")
+      await instance(refreshToken)
+        .post('/reissue')
+          .then(response =>{
+            const newAccessToken = response.data;
+            localStorage.setItem("accessToken", newAccessToken);
+            setCookie("accessToken", newAccessToken)
+          })
+          .catch(error => {
+            navigate("/login") 
+          });
+    }
+  }
+
   useEffect(() => {
     let token = getCookie("accessToken")
     if(token != null){
@@ -48,29 +67,35 @@ function WaitingRoom(props){
   }
 
   useEffect(() => {
-    if (stompClient) {
-      let headers = {Authorization: getCookie('accessToken')};
-
-      // 구독
-      stompClient.connect(headers, () => {
-        stompClient.subscribe('/sub/match/'+roomKey, (message) => {
-          closeModal()
-          stompClient.disconnect(); // 소켓 연결 종료
-          console.log("DISCONNECT")
-          console.log(message.body)
-          navigate("/api/v1/chattingroom", 
-                  {state: {enterChat: true, room: message.body}});
-
+    const connectToWebSocket = async () => {
+      if (stompClient) {
+        await checkAccessToken(); // 액세스 토큰 확인 및 갱신
+  
+        let headers = { Authorization: getCookie('accessToken') };
+  
+        // WebSocket에 연결
+        stompClient.connect(headers, () => {
+          stompClient.subscribe('/sub/match/' + roomKey, (message) => {
+            closeModal();
+            stompClient.disconnect(); // 소켓 연결 종료
+            console.log("DISCONNECT");
+            navigate("/api/v1/chattingroom", { state: { enterChat: true, room: message.body } });
+          });
+        }, (error) => {
+          console.error('Failed to connect to WebSocket:', error);
         });
-      }, (error) => {
-        console.error('Failed to connect to WebSocket:', error);
-      });
-    }
+      }
+    };
+  
+    connectToWebSocket(); // WebSocket 연결
   }, [stompClient, roomKey]);
 
 
-  const openModal = () => {
+  const openModal = async() => {
     setIsModalOpen(true);
+
+    await checkAccessToken();
+
     let token = getCookie("accessToken")
     let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
     let dec = base64.decode(payload)
@@ -87,6 +112,38 @@ function WaitingRoom(props){
     }
 
     setPreferData(data)
+
+    try {
+      const response = await instance(getCookie("accessToken")).post("api/v1/match", data);
+  
+      if (response.status === 200) {
+        closeModal();
+        setRoomKey(response.data.roomKey);
+        navigate("/api/v1/chattingroom", { state: { enterChat: true, room: response.data } });
+      } else if (response.status === 202) {
+        setRoomKey(response.data.roomKey);
+        setPreferData(prev => ({ ...prev, roomKey: response.data.roomKey, time: parseInt(response.data.time) }));
+        openSocket();
+      }
+    } catch (error) {
+      closeModal();
+  
+      if (error.response && error.response.status === 400) {
+        toast({
+          variant: "destructive",
+          description: error.response.data,
+          duration: 3000
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          description: error.response.data,
+          duration: 3000
+        });
+      }
+    }
+  };
+  /*
     instance(getCookie("accessToken"))
     .post("api/v1/match", data)
     .then(response =>{
@@ -129,6 +186,8 @@ function WaitingRoom(props){
       }
     });
   }
+    */
+  
 
   const rematch = () => {
     console.log(preferData)
@@ -138,32 +197,37 @@ function WaitingRoom(props){
   };
 
   useEffect(() => {
-    if (rematchFlag==true) {
-      setRematchFlag(false)
-
-      instance(getCookie("accessToken"))
-        .post("api/v1/rematch", preferData)
-        .then(response => {
+    const rematch = async () => {
+      if (rematchFlag) {
+        setRematchFlag(false);
+  
+        await checkAccessToken(); // 액세스 토큰 확인 및 갱신
+  
+        try {
+          const response = await instance(getCookie("accessToken"))
+              .post("api/v1/rematch", preferData);
+  
           if (response.status === 200) {
             closeModal();
             setRoomKey(response.data.roomKey);
-            navigate("/api/v1/chattingroom", 
-                    {state: {enterChat: true, room: response.data}});
+            navigate("/api/v1/chattingroom", { state: { enterChat: true, room: response.data } });
           } else if (response.status === 202) {
             setRoomKey(response.data.roomKey);
             openSocket();
           }
-        })
-        .catch(error => {
-          toast(
-            {
-              variant: "destructive",
-              description: error.response.data,
-              duration: 3000,
-            }
-        )});
-    }
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            description: error.response.data,
+            duration: 3000
+          });
+        }
+      }
+    };
+  
+    rematch();
   }, [rematchFlag, preferData]);
+
   
   const cancelMatch = () => {
     instance(getCookie("accessToken"))

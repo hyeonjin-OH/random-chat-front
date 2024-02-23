@@ -4,8 +4,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 import {instance, instanceE} from 'api/axiosApi'
-import {getCookie} from 'app/cookie'
+import {setCookie,getCookie} from 'app/cookie'
 import base64 from "base-64"
+import { isAccessTokenExpired } from 'app/isAccessTokenExpired';
 
 function ChatMain(){
 
@@ -34,46 +35,60 @@ function ChatMain(){
 
   const [lastIdx, setLastIdx] = useState(0)
 
-  useEffect(()=>{
-
-    let token = getCookie("accessToken")
-    if(token != null){
-      let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
-      let dec = base64.decode(payload)
-      const extractedUuId = JSON.parse(dec).sub;
-      setUuId(extractedUuId);
-    }else{
-      return(navigate("/login"))
-    }
+  const checkAccessToken = async () => {
     
-    async function getData(){
-      try{
-        setAllRoom([])
-        let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom")
-        
-        if(res.data.length > 0){
-          const _inputData = await res.data.map((r)=>(
-            setLastIdx(lastIdx+1),
-            { 
-              idx: lastIdx,
-              createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
-              lastMessage: r.lastMessage,
-              roomId: r.roomId,
-              roomKey: r.roomKey
-            })
-          )
-          setAllRoom(_inputData)
-        }
-      }      
-    catch(e){
-      console.log("ChatMain error Response")
-      console.log(e.respone)
-      if(e.response && e.response.status == 401){
-        navigate("/login")
-      }
+    if(isAccessTokenExpired(getCookie("accessToken"))){
+
+      const refreshToken = localStorage.getItem("refreshToken")
+      await instance(refreshToken)
+        .post('/reissue')
+          .then(response =>{
+            const newAccessToken = response.data;
+            localStorage.setItem("accessToken", newAccessToken);
+            setCookie("accessToken", newAccessToken)
+          })
+          .catch(error => {
+            navigate("/login") 
+          });
     }
   }
-  getData()
+
+  useEffect(()=>{
+    const fetchData = async () => {
+      try {
+        checkAccessToken();
+  
+        let token = getCookie("accessToken");
+        if (token != null) {
+          let payload = token.substring(token.indexOf('.') + 1, token.lastIndexOf('.'));
+          let dec = base64.decode(payload);
+          const extractedUuId = JSON.parse(dec).sub;
+          setUuId(extractedUuId);
+        } else {
+          return navigate("/login");
+        }
+  
+        setAllRoom([]);
+        let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom");
+  
+        if (res.data.length > 0) {
+          const _inputData = res.data.map((r) => ({
+            idx: lastIdx + 1,
+            createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
+            lastMessage: r.lastMessage,
+            roomId: r.roomId,
+            roomKey: r.roomKey
+          }));
+          setAllRoom(_inputData);
+        }
+      } catch (e) {
+        if (e.response && e.response.status === 401) {
+          navigate("/login");
+        }
+      }
+    };
+  
+    fetchData();
 
   },[])
 
@@ -117,7 +132,6 @@ function ChatMain(){
     let theight = textBoxHeight-20
 
     let cwidth = Math.floor(twidth / 450)
-    console.log("roomCount: " + roomCount + " cwidth: " + cwidth)
 
     if(roomCount > cwidth){
       twidth = `${(textBoxWidth - 40) / cwidth}px`;
@@ -145,39 +159,41 @@ function ChatMain(){
   }
 
   const closeRoom = (roomInfo) => {
-    console.log("closeRoom")
     // 방이 닫힐 때 roomCount를 감소시킴
     setCloseRoomInfo(roomInfo)
     setRoomCount(prevCount => prevCount > 0 ? prevCount - 1 : 0);
     setSelectedRoom(prevRooms => prevRooms.filter(room => room.roomId !== roomInfo.roomId));
   };
 
-  // ChatList로 부터 나가는 방 정보 전달 받음
-  const exitRoom = (room) => {
-    setExitRoomInfo(room)
-    setExitChat(true)
+// ChatList로 부터 나가는 방 정보 전달 받음
+const exitRoom = async (room) => {
+  setExitRoomInfo(room);
+  setExitChat(true);
 
-    async function getData(){
-      const data = {
-        roomKey: room.roomKey,
-        uuId: uuId
-      }
-      let res = await instance(getCookie("accessToken"))
-      .post("api/v1/chattingroom/exit", data)
-      const _inputData = await res.data.map((r)=>(
-        setLastIdx(lastIdx+1),
-        { 
-          idx: lastIdx,
-          createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
-          lastMessage: r.lastMessage,
-          roomId: r.roomId,
-          roomKey: r.roomKey
-        })
-      )
-      setAllRoom(_inputData)
+  await checkAccessToken();
+
+  try {
+    const data = {
+      roomKey: room.roomKey,
+      uuId: uuId
+    };
+
+    let res = await instance(getCookie("accessToken"))
+              .post("api/v1/chattingroom/exit", data);
+    const _inputData = res.data.map((r) => ({
+      idx: lastIdx + 1,
+      createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
+      lastMessage: r.lastMessage,
+      roomId: r.roomId,
+      roomKey: r.roomKey
+    }));
+    setAllRoom(_inputData);
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      navigate("/login");
     }
-    getData()
   }
+};
 
 
   useEffect(() => {
