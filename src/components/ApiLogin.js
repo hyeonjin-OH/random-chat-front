@@ -70,12 +70,9 @@ function ApiLogin(props){
     console.log(response.data)
     // accessToken 설정
     setCookie("accessToken",response.data.accessToken);
-    setCookie("uuid",response.data.use);
     localStorage.setItem("accessToken", response.data.accessToken);
     localStorage.setItem("refreshToken", response.data.refreshToken);
   
-    // accessToken 만료하기 1분 전에 로그인 연장
-    //setTimeout(onSilentRefresh, JWT_EXPIRRY_TIME - 60000);
     const navUri = "/api/v1/prefer"
     navigate(navUri);
   }

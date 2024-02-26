@@ -137,11 +137,13 @@ function PreferenceForm(props){
   const checkAccessToken = async () => {
     
     if(isAccessTokenExpired(getCookie("accessToken"))){
-      const refreshToken = localStorage.getItem("refreshToken")
+
+      const refreshToken = getCookie("refreshToken")
       await instance(refreshToken)
         .post('/reissue')
           .then(response =>{
-            const newAccessToken = response.data;
+            console.log(response.data)
+            const newAccessToken = response.data.accessToken;
             localStorage.setItem("accessToken", newAccessToken);
             setCookie("accessToken", newAccessToken)
           })
@@ -156,7 +158,8 @@ function PreferenceForm(props){
     try {
       await checkAccessToken(); 
 
-      const response = await instance(getCookie("accessToken")).get(location.pathname);
+      const response = await instance(getCookie("accessToken"))
+      .get(location.pathname);
       if (response.data) {
         setRaid(response.data.preferRaid);
         setRole(JSON.stringify(response.data.preferRole) === "[111]" ? [] : response.data.preferRole);

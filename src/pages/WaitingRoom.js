@@ -33,14 +33,19 @@ function WaitingRoom(props){
   })
 
   const checkAccessToken = async () => {
+    console.log("checkAccess")
     
     if(isAccessTokenExpired(getCookie("accessToken"))){
-
       const refreshToken = localStorage.getItem("refreshToken")
+      if(refreshToken == 'undefined' || !refreshToken){
+        navigate("/login")
+      }
+      
       await instance(refreshToken)
         .post('/reissue')
           .then(response =>{
-            const newAccessToken = response.data;
+            console.log(response.data)
+            const newAccessToken = response.data.accessToken;
             localStorage.setItem("accessToken", newAccessToken);
             setCookie("accessToken", newAccessToken)
           })
@@ -114,7 +119,8 @@ function WaitingRoom(props){
     setPreferData(data)
 
     try {
-      const response = await instance(getCookie("accessToken")).post("api/v1/match", data);
+      const response = await instance(getCookie("accessToken"))
+                      .post("api/v1/match", data);
   
       if (response.status === 200) {
         closeModal();

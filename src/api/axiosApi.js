@@ -10,12 +10,12 @@ export const instanceE =
   });
 
 
-export const instance = (accessToken) =>
+export const instance = (token) =>
   axios.create({
     baseURL: localURL,
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessToken}`,
+      'Authorization': `Bearer ${token}`,
     },
     withCredentials: true,
   });

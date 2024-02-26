@@ -40,6 +40,9 @@ function ChatMain(){
     if(isAccessTokenExpired(getCookie("accessToken"))){
 
       const refreshToken = localStorage.getItem("refreshToken")
+      if(refreshToken == 'undefined' || !refreshToken){
+        navigate("/login")
+      }
       await instance(refreshToken)
         .post('/reissue')
           .then(response =>{
