@@ -66,14 +66,9 @@ function ApiLogin(props){
   }
   
   const onLoginSuccess = response => {
-    console.log("onLoginSuccess")
-    console.log(response.data)
     // accessToken 설정
     setCookie("accessToken",response.data.accessToken);
-    localStorage.setItem("accessToken", response.data.accessToken);
-    localStorage.setItem("refreshToken", response.data.refreshToken);
-  
-    const navUri = "/api/v1/prefer"
+    const navUri = "/prefer"
     navigate(navUri);
   }
 

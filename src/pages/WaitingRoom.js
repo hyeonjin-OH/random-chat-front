@@ -36,17 +36,12 @@ function WaitingRoom(props){
     console.log("checkAccess")
     
     if(isAccessTokenExpired(getCookie("accessToken"))){
-      const refreshToken = localStorage.getItem("refreshToken")
-      if(refreshToken == 'undefined' || !refreshToken){
-        navigate("/login")
-      }
       
-      await instance(refreshToken)
+      await instance()
         .post('/reissue')
           .then(response =>{
             console.log(response.data)
             const newAccessToken = response.data.accessToken;
-            localStorage.setItem("accessToken", newAccessToken);
             setCookie("accessToken", newAccessToken)
           })
           .catch(error => {
@@ -125,7 +120,7 @@ function WaitingRoom(props){
       if (response.status === 200) {
         closeModal();
         setRoomKey(response.data.roomKey);
-        navigate("/api/v1/chattingroom", { state: { enterChat: true, room: response.data } });
+        navigate("/chattingroom", { state: { enterChat: true, room: response.data } });
       } else if (response.status === 202) {
         setRoomKey(response.data.roomKey);
         setPreferData(prev => ({ ...prev, roomKey: response.data.roomKey, time: parseInt(response.data.time) }));

@@ -1,7 +1,6 @@
 import { Button } from "~/components/ui/button"
 import { Typography } from "~/components/ui/typography"
 import { IoIosCloseCircleOutline } from "react-icons/io";
-import {useNavigate} from 'react-router-dom'
 import { useEffect, useState, useRef } from 'react';
 import {instance} from 'api/axiosApi'
 import {setCookie, getCookie} from 'app/cookie'

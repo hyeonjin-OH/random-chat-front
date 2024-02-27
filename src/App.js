@@ -18,6 +18,7 @@ import {
 import { ChatMain } from 'pages/ChatMain';
 
 import { ApiLogin } from 'components/ApiLogin';
+import { Logout } from 'pages/Logout';
 
 
 function App() {
@@ -33,18 +34,18 @@ function App() {
 
     <Menubar>
       <MenubarMenu>
-        <MenubarTrigger onClick={()=>navigate("/api/v1/chattingroom")}>        
+        <MenubarTrigger onClick={()=>navigate("/chattingroom")}>        
           <Typography variant="h4" className="logo-font">LoChat</Typography>
       </MenubarTrigger> 
       </MenubarMenu>
       <MenubarMenu>
-        <MenubarTrigger onClick={()=>navigate("/api/v1/prefer", {state:{openedFlag:"N"}})}>내 정보</MenubarTrigger>
+        <MenubarTrigger onClick={()=>navigate("/prefer", {state:{openedFlag:"N"}})}>내 정보</MenubarTrigger>
         </MenubarMenu>
         <MenubarMenu>
         <MenubarTrigger>채팅방</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem onClick={()=>navigate("/api/v1/waitingroom")}>새 매칭</MenubarItem>
-          <MenubarItem onClick={()=>navigate("/api/v1/chattingroom")}>내 채팅방</MenubarItem>
+          <MenubarItem onClick={()=>navigate("/waitingroom")}>새 매칭</MenubarItem>
+          <MenubarItem onClick={()=>navigate("/chattingroom")}>내 채팅방</MenubarItem>
         </MenubarContent>
       </MenubarMenu>
     </Menubar>
@@ -55,12 +56,13 @@ function App() {
         <Route path="/login" element={
           <ApiLogin setUserId={setUserId}></ApiLogin>
         } />
-      <Route path="/api/v1/prefer" 
+      <Route path="/prefer" 
         element={<PreferenceForm openedFlag={openedflag} userId={userId} />} />
-      <Route path="/api/v1/waitingroom"
+      <Route path="/waitingroom"
         element={<WaitingRoom navigate={navigate} userId={userId}/>}/>
-      <Route path="/api/v1/chattingroom"
+      <Route path="/chattingroom"
         element={<ChatMain />}/>
+      <Route path ="/logout" element={<Logout />} />
       <Route path="/*" element={<NotFound />} />
     </Routes>
     </div>

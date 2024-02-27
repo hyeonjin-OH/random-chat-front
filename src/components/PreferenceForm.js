@@ -138,13 +138,11 @@ function PreferenceForm(props){
     
     if(isAccessTokenExpired(getCookie("accessToken"))){
 
-      const refreshToken = getCookie("refreshToken")
-      await instance(refreshToken)
+      await instance()
         .post('/reissue')
           .then(response =>{
             console.log(response.data)
             const newAccessToken = response.data.accessToken;
-            localStorage.setItem("accessToken", newAccessToken);
             setCookie("accessToken", newAccessToken)
           })
           .catch(error => {
@@ -159,7 +157,7 @@ function PreferenceForm(props){
       await checkAccessToken(); 
 
       const response = await instance(getCookie("accessToken"))
-      .get(location.pathname);
+      .get("/api/v1/prefer");
       if (response.data) {
         setRaid(response.data.preferRaid);
         setRole(JSON.stringify(response.data.preferRole) === "[111]" ? [] : response.data.preferRole);
@@ -167,6 +165,10 @@ function PreferenceForm(props){
         setCheckedRaidCount(response.data.preferRaid === null ? 0 : response.data.preferRaid.length);
         setCheckedRoleCount(response.data.preferRole === null ? 0 :
           JSON.stringify(response.data.preferRole) === "[111]" ? 0 : response.data.preferRole.length);
+        
+        if(response.data.preferRaid &&response.data.preferRaid.toString() === "1"){
+          setJustChatting(true)
+        }
         props.changePrefer(response.data);
       }
     } catch (error) {
@@ -209,8 +211,6 @@ function PreferenceForm(props){
   const onSubmit = async(data)=>{
 
     if(data.preferRaid.length == 0 || data.preferRole.length == 0){
-      console.log(JSON.stringify(data.preferRaid))
-      console.log(JSON.stringify(data.preferRaid) === "1" && data.preferRole.length == 0)
       if(!(JSON.stringify(data.preferRaid) === "[1]" && data.preferRole.length == 0)){
         return(
           toast({
@@ -237,7 +237,7 @@ function PreferenceForm(props){
       if (props.changePrefer) {
         props.changePrefer(response.data);
       }
-      navigate("/api/v1/waitingroom");
+      navigate("/waitingroom");
       toast({
         description: "선호 매칭 저장에 성공하였습니다.",
         duration: 1000,
