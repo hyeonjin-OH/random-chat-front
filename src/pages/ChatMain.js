@@ -7,6 +7,8 @@ import {instance, instanceE} from 'api/axiosApi'
 import {setCookie,getCookie} from 'app/cookie'
 import base64 from "base-64"
 import { isAccessTokenExpired } from 'app/isAccessTokenExpired';
+import { Toaster } from "~/components/ui/toaster";
+import { useToast } from "~/components/ui/use-toast.js"
 
 function ChatMain(){
 
@@ -22,6 +24,7 @@ function ChatMain(){
     roomId: 0,
     createdTime: ''
   });
+  const {toast} = useToast();
 
   const [roomCount, setRoomCount] = useState(0)
   const [selectedRoom, setSelectedRoom] = useState([])
@@ -188,7 +191,13 @@ const exitRoom = async (room) => {
   } catch (error) {
     if (error.response && error.response.status === 401) {
       navigate("/login");
-    }
+    }else if(error.response && error.response.status === 400){
+      toast({
+        variant: "destructive",
+        description: error.response.data + "\n새로고침 후 다시 시도해주세요.",
+        duration: 3000
+      });
+    } 
   }
 };
 

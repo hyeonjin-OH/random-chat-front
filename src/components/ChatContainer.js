@@ -26,7 +26,6 @@ function ChatContainer(props){
 
 
   useEffect(() => {
-
     // Connect to WebSocket - over func will deprecated
     const socket = new SockJS("http://localhost:8080/chat");
     const stomp = Stomp.over(socket);

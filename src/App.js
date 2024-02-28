@@ -60,8 +60,7 @@ function App() {
         element={<PreferenceForm openedFlag={openedflag} userId={userId} />} />
       <Route path="/waitingroom"
         element={<WaitingRoom navigate={navigate} userId={userId}/>}/>
-      <Route path="/chattingroom"
-        element={<ChatMain />}/>
+      <Route path="/chattingroom" element={<ChatMain />}/>
       <Route path ="/logout" element={<Logout />} />
       <Route path="/*" element={<NotFound />} />
     </Routes>

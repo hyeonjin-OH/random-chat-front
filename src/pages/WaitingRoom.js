@@ -33,14 +33,12 @@ function WaitingRoom(props){
   })
 
   const checkAccessToken = async () => {
-    console.log("checkAccess")
     
     if(isAccessTokenExpired(getCookie("accessToken"))){
       
       await instance()
         .post('/reissue')
           .then(response =>{
-            console.log(response.data)
             const newAccessToken = response.data.accessToken;
             setCookie("accessToken", newAccessToken)
           })
@@ -59,37 +57,51 @@ function WaitingRoom(props){
     }
   }, []);
 
-  const openSocket=()=>{
-    const socket = new SockJS("http://localhost:8080/match");
+  const openSocket=async (prefer, uuId, roomKey)=>{
+
+    const socketURL = 'http://localhost:8080/match';
+    const socket = new SockJS(socketURL);
     const stomp = Stomp.over(socket);
+
+
+    const val = prefer.substring(0, prefer.indexOf('-'))
+    const count = val.split(",").length;
+
+    const headers = {
+      endpoint: 'match',
+      key: `${count}:${prefer}`,
+      value: `${uuId}:${roomKey}`,
+      Authorization: getCookie('accessToken')
+    };
+
+    await checkAccessToken(); // 액세스 토큰 확인 및 갱신
+
+    console.log("stomp First Connect")
+    stomp.connect(headers, ()=>{
+      stomp.subscribe('/sub/match/' + roomKey, (message) => {
+        closeModal();
+        stomp.disconnect(); // 소켓 연결 종료
+        console.log("DISCONNECT");
+        navigate("/api/v1/chattingroom", { state: { enterChat: true, room: message.body } });
+      });
+    })
 
     setStompClient(stomp);
   }
-
+/*
   useEffect(() => {
-    const connectToWebSocket = async () => {
-      if (stompClient) {
-        await checkAccessToken(); // 액세스 토큰 확인 및 갱신
-  
-        let headers = { Authorization: getCookie('accessToken') };
-  
-        // WebSocket에 연결
-        stompClient.connect(headers, () => {
-          stompClient.subscribe('/sub/match/' + roomKey, (message) => {
-            closeModal();
-            stompClient.disconnect(); // 소켓 연결 종료
-            console.log("DISCONNECT");
-            navigate("/api/v1/chattingroom", { state: { enterChat: true, room: message.body } });
-          });
-        }, (error) => {
-          console.error('Failed to connect to WebSocket:', error);
-        });
-      }
-    };
-  
-    connectToWebSocket(); // WebSocket 연결
-  }, [stompClient, roomKey]);
+    if (stompClient) {
 
+      console.log("stomp Subscribe Before")
+      stompClient.subscribe('/sub/match/' + roomKey, (message) => {
+        closeModal();
+        stompClient.disconnect(); // 소켓 연결 종료
+        console.log("DISCONNECT");
+        navigate("/api/v1/chattingroom", { state: { enterChat: true, room: message.body } });
+      });
+    }
+  }, [stompClient, roomKey]);
+*/
 
   const openModal = async() => {
     setIsModalOpen(true);
@@ -124,7 +136,7 @@ function WaitingRoom(props){
       } else if (response.status === 202) {
         setRoomKey(response.data.roomKey);
         setPreferData(prev => ({ ...prev, roomKey: response.data.roomKey, time: parseInt(response.data.time) }));
-        openSocket();
+        openSocket(prefer, uuId, response.data.roomKey);
       }
     } catch (error) {
       closeModal();
