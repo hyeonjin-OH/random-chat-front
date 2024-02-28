@@ -44,7 +44,7 @@ function ChatMain(){
       await instance()
         .post('/reissue')
           .then(response =>{
-            const newAccessToken = response.data;
+            const newAccessToken = response.data.accessToken;
             setCookie("accessToken", newAccessToken)
           })
           .catch(error => {
