@@ -10,12 +10,13 @@ import { WaitingModal } from "components/WaitingModal";
 import base64 from "base-64"
 import {Stomp} from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { Typography } from "~/components/ui/typography"
+
 import { Toaster } from "~/components/ui/toaster";
 import { isAccessTokenExpired } from 'app/isAccessTokenExpired';
 
 function WaitingRoom(props){
   const params = useParams();
-  const userId = params.id;
   const openedFlag = "Y";
   let navigate = useNavigate();
   const {toast} = useToast();
@@ -24,6 +25,7 @@ function WaitingRoom(props){
   const [roomKey, setRoomKey] = useState("");
   const [rematchFlag, setRematchFlag] = useState(false)
   const [stompClient, setStompClient] = useState(null);
+  //request preferData
   const [preferData, setPreferData ] = useState({
       uuId: "",
       prefer: "",
@@ -31,6 +33,8 @@ function WaitingRoom(props){
       roomKey: "",
       time: 0
   })
+
+const [uuId, setUuId] = useState();
 
   const checkAccessToken = async () => {
     
@@ -57,51 +61,36 @@ function WaitingRoom(props){
     }
   }, []);
 
-  const openSocket=async (prefer, uuId, roomKey)=>{
+  const openSocket=async (preferParam, uuId, roomKey)=>{
 
     const socketURL = 'http://localhost:8080/match';
     const socket = new SockJS(socketURL);
     const stomp = Stomp.over(socket);
 
-
-    const val = prefer.substring(0, prefer.indexOf('-'))
-    const count = val.split(",").length;
-
     const headers = {
       endpoint: 'match',
-      key: `${count}:${prefer}`,
+      key: `${preferParam}`,
       value: `${uuId}:${roomKey}`,
       Authorization: getCookie('accessToken')
     };
 
     await checkAccessToken(); // 액세스 토큰 확인 및 갱신
 
-    console.log("stomp First Connect")
     stomp.connect(headers, ()=>{
       stomp.subscribe('/sub/match/' + roomKey, (message) => {
         closeModal();
-        stomp.disconnect(); // 소켓 연결 종료
-        console.log("DISCONNECT");
-        navigate("/api/v1/chattingroom", { state: { enterChat: true, room: message.body } });
+        const headers2 = {
+          destination: '/disconnect',
+        }
+        stomp.disconnect({}, headers2);
+
+        navigate("/chattingroom", 
+                { state: { enterChat: true, room: message.body } });
       });
     })
 
     setStompClient(stomp);
   }
-/*
-  useEffect(() => {
-    if (stompClient) {
-
-      console.log("stomp Subscribe Before")
-      stompClient.subscribe('/sub/match/' + roomKey, (message) => {
-        closeModal();
-        stompClient.disconnect(); // 소켓 연결 종료
-        console.log("DISCONNECT");
-        navigate("/api/v1/chattingroom", { state: { enterChat: true, room: message.body } });
-      });
-    }
-  }, [stompClient, roomKey]);
-*/
 
   const openModal = async() => {
     setIsModalOpen(true);
@@ -111,13 +100,14 @@ function WaitingRoom(props){
     let token = getCookie("accessToken")
     let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
     let dec = base64.decode(payload)
-    const uuId = JSON.parse(dec).sub
+    const id = JSON.parse(dec).sub
+    setUuId(id)
 
     const val = prefer.substring(0, prefer.indexOf('-'))
     const count = val.split(",").length;
 
     const data = {
-      uuId: uuId,
+      uuId: id,
       prefer: prefer,
       optionCount: count,
       roomKey: ""
@@ -136,7 +126,8 @@ function WaitingRoom(props){
       } else if (response.status === 202) {
         setRoomKey(response.data.roomKey);
         setPreferData(prev => ({ ...prev, roomKey: response.data.roomKey, time: parseInt(response.data.time) }));
-        openSocket(prefer, uuId, response.data.roomKey);
+
+        openSocket(makePreferTag(data), id, response.data.roomKey);
       }
     } catch (error) {
       closeModal();
@@ -156,61 +147,15 @@ function WaitingRoom(props){
       }
     }
   };
-  /*
-    instance(getCookie("accessToken"))
-    .post("api/v1/match", data)
-    .then(response =>{
-      //closeModal()
-      if(response.status == 200){
-        closeModal()
-        setRoomKey(response.data.roomKey)
-        navigate("/api/v1/chattingroom",
-                {state: {enterChat: true, room: response.data}})
-      }
-      else if(response.status == 202){
-        setRoomKey(response.data.roomKey)
-        setPreferData(prev => ({...prev, 
-                                roomKey: response.data.roomKey, 
-                                time: parseInt(response.data.time)}))
-        openSocket();
-      }
-    }).catch(error =>{
-      if(error.response && error.response.status === 400){
-        closeModal()
-
-        toast(
-          {
-            variant: "destructive",
-            description: error.response.data,
-            duration: 3000,
-          }
-        )
-      }
-      else{
-        closeModal()
-
-        toast(
-          {
-            variant: "destructive",
-            description: error.response.data,
-            duration: 3000,
-          }
-        )
-      }
-    });
-  }
-    */
-  
 
   const rematch = () => {
-    console.log(preferData)
     // PreferData에서 optionCount만 변경
     setPreferData(prev => ({...prev, optionCount: prev.optionCount - 1}));
     setRematchFlag(true)
   };
 
   useEffect(() => {
-    const rematch = async () => {
+    const rematchHandler = async () => {
       if (rematchFlag) {
         setRematchFlag(false);
   
@@ -223,10 +168,12 @@ function WaitingRoom(props){
           if (response.status === 200) {
             closeModal();
             setRoomKey(response.data.roomKey);
-            navigate("/api/v1/chattingroom", { state: { enterChat: true, room: response.data } });
-          } else if (response.status === 202) {
+            navigate("/chattingroom", { state: { enterChat: true, room: response.data } });
+          }
+          else if (response.status === 202) {
             setRoomKey(response.data.roomKey);
-            openSocket();
+
+            openSocket(makePreferTag(preferData), uuId, response.data.roomKey);
           }
         } catch (error) {
           toast({
@@ -238,7 +185,7 @@ function WaitingRoom(props){
       }
     };
   
-    rematch();
+    rematchHandler();
   }, [rematchFlag, preferData]);
 
   
@@ -247,7 +194,11 @@ function WaitingRoom(props){
     .post("api/v1/match/cancel", preferData)
     .then(response =>{
       closeModal()
-      stompClient.disconnect();   
+      const headers = {
+        destination: '/disconnect',
+      }
+      stompClient.disconnect({}, headers);
+      
     }).catch(error =>{
       closeModal()
     });
@@ -261,13 +212,19 @@ function WaitingRoom(props){
     setPrefer(tmp)
   }
 
+  const makePreferTag = (p) =>{
+    let preferTag = p.optionCount + ":" + p.prefer
+    return preferTag
+  }
 
   return(
     <>
-    <PreferenceForm userid={userId} openedFlag={openedFlag} changePrefer={changePrefer}/>
+    <PreferenceForm  openedFlag={openedFlag} changePrefer={changePrefer}/>
       <Button onClick={()=>{ openModal();
       }}>랜덤 매칭 시작</Button> 
     {isModalOpen && <WaitingModal isOpen={isModalOpen} closeModal={closeModal} rematch={rematch} cancelMatch={cancelMatch}/>}
+    <Typography variant="p">* 보다 빠른 매칭을 위해 레이드는 최대 3개, 포지션은 1개만 선택 가능합니다.</Typography>
+      <Typography variant="p"> 단순 채팅만 하고싶다면 '모코코'만 선택 하시고 [변경 후] 매칭해주시면 됩니다.</Typography>
     <div className="Subtitle-blank-20">
     </div>
     <Toaster/>

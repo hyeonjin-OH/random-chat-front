@@ -52,6 +52,10 @@ function ChatList(props){  const [roomCount, setRoomCount] = useState(0)
         setAllRoom(props.allRoom)
         setLastIdx(props.lastIdx)
       }
+      else{
+        setAllRoom([])
+        setLastIdx(0)
+      }
     }catch(e){
       console.log(e.message)
     }

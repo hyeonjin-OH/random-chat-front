@@ -17,12 +17,8 @@ const ChattingRoom= (props)=> {
   let dec = base64.decode(payload)
   const uuId = JSON.parse(dec).sub
 
-  const [roomId, setRoomId] = useState(0);
-
-
   useEffect(() => {
     if (props.roomInfo && props.roomInfo.roomId) {
-      // 비동기 작업을 수행하는 함수 호출
       fetchData(props.roomInfo.roomId);
     }
   }, [props.roomInfo]);
@@ -106,6 +102,7 @@ const ChattingRoom= (props)=> {
   }
 
   const closeRoom = ()=>{
+    props.closeHandler(props.roomInfo)
     props.closeRoom(props.roomInfo)
   }
 
@@ -123,12 +120,12 @@ const ChattingRoom= (props)=> {
         </div>
       </div>
       <div className= "chat-message-input-area">
-        <Input
+        <Input disabled = {props.roomActive}
           value={props.message}
           onChange={(e) => props.setMessage(e.target.value)}
           onKeyPress={activeEnter}
         />
-        <Button type="primary" onClick={props.handleEnter}>
+        <Button disabled = {props.roomActive} type="primary" onClick={props.handleEnter}>
           전송
         </Button>
       </div>

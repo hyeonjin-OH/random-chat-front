@@ -18,7 +18,8 @@ function ChatContainer(props){
     roomId: 0,
     createdTime: ''
   });
-
+  const [stompClients, setStompClients] = useState({});  
+  const [roomActive, setRoomActive] = useState(false); // 채팅방 활성화 상태
   let token = getCookie("accessToken")
   let payload = token.substring(token.indexOf('.')+1,token.lastIndexOf('.'));
   let dec = base64.decode(payload)
@@ -27,62 +28,99 @@ function ChatContainer(props){
 
   useEffect(() => {
     // Connect to WebSocket - over func will deprecated
-    const socket = new SockJS("http://localhost:8080/chat");
-    const stomp = Stomp.over(socket);
+    // const socket = new SockJS("http://localhost:8080/chat");
+    // const stomp = Stomp.over(socket);
+    
+    // const roomKey = props.roomInfo.roomKey;
 
-    setStompClient(stomp);
+    // setStompClients(prevClients => ({
+    //   ...prevClients,
+    //   [roomKey]: stomp  
+    // }));
 
-    return () => {        
-      if (stomp && stomp.connected) {
-        console.log("stomp check")
-        stomp.disconnect();
-      }
-    };
+
+    // return () => {        
+    //   console.log("return & exit : " + props.exit)
+    //   if (stomp && stomp.connected && props.exit !== true) {
+    //     stomp.disconnect();
+    //   }
+    // };
   
   },[]);
 
   useEffect(()=>{
+    const socket = new SockJS("http://localhost:8080/chat");
+    const stomp = Stomp.over(socket);
+    
+    const roomKey = props.roomInfo.roomKey;
+
+    setStompClients(prevClients => ({
+      ...prevClients,
+      [roomKey]: stomp  
+    }));
+
     setRoomInfo(props.roomInfo)
   }, [props.roomInfo])
 
+
   useEffect(()=>{
-    
     if(props.exit == true){
       fetchData(props.exitRoomInfo.roomId)
     }
   }, [props.exit, props.exitRoomInfo])
 
+  const closeHandler = (p) => {
+    console.log(p)
+    console.log(stompClients)
+    const roomIdToClose = p ? p.roomKey : null;
+    const stompClientToClose = stompClients[roomIdToClose];
+
+    if (stompClientToClose && stompClientToClose.connected) {
+      stompClientToClose.disconnect();
+    }
+  };
+
   useEffect(() => {
 
+    const roomKey = roomInfo.roomKey;
+    const stompClient = stompClients[roomKey];
+    
     if (stompClient) {
+      
       let headers = {Authorization: getCookie('accessToken')};
 
       stompClient.connect(headers, () => {
-
-        console.log("props.enter : " + props.enter)
         if(props.enter == true && stompClient){
-
-          stompClient.send('/pub/chat/enter', {}, 
-          // ChatMessage DTO
-          JSON.stringify({ 
-            type: 'ENTER',
-            roomKey: roomInfo.roomKey,
-            sender: uuId,
-            message: "",
-            sendTime: moment().format('YYYY-MM-DDTHH:mm:sszz')}
-          ));
+          setTimeout(() => {
+            stompClient.send('/pub/chat/enter', {}, 
+              JSON.stringify({ 
+                type: 'ENTER',
+                roomKey: roomInfo.roomKey,
+                sender: uuId,
+                message: "",
+                sendTime: moment().format('YYYY-MM-DDTHH:mm:sszz')
+              })
+            );
+          }, 200);  //0.2s 후 입장 메세지 발송 - 쌍방 연결 delay때문에
         }
-
+      
         stompClient.subscribe('/sub/chat/room/'+roomInfo.roomKey, (message) => {
           const newMessage = JSON.parse(message.body);
+
           setChatHistory((prevHistory) => [...prevHistory, newMessage]);
+          if(newMessage === "채팅방에서 퇴장하였습니다."){
+            setRoomActive(true); // 채팅방 비활성화
+          }
         });
       });
     }
-  }, [stompClient, username, roomInfo]); 
+  }, [stompClients, username, roomInfo]); 
 
   // chatting message 전송
   const handleEnter = () => {
+    const roomKey = roomInfo.roomKey;
+    const stompClient = stompClients[roomKey];
+
     if (stompClient && message && username) {
       stompClient.send('/pub/chat/message', {}, 
       // ChatMessage DTO
@@ -99,7 +137,8 @@ function ChatContainer(props){
   };
 
   const exitRoom = () => {
-    console.log("ChatContainer exitRoom")
+    const roomKey = props.exitRoomInfo.roomKey;
+    const stompClient = stompClients[roomKey];
 
     if (stompClient && stompClient.connected) {
       let headers = {Authorization: getCookie('accessToken')};
@@ -122,12 +161,15 @@ function ChatContainer(props){
   }
 
   const fetchData = async(roomId) => {
-    console.log("fetchData")
     await instance(getCookie("accessToken"))
     .get("api/v1/chattingroom/"+roomId)
     .then(function(response){
       if(response.data == null){
         return
+      }
+      if(response.data.senderId != "" || response.data.receiverId != ""){
+        // 두명 중 한 명이라도 나가면 채팅방 비활성화
+        setRoomActive(true)
       }
       if(response.data.senderId != "" &&  response.data.receiverId != ""){
         exitRoom()
@@ -145,6 +187,7 @@ function ChatContainer(props){
 
   return(
     <>
+    {(
     <ChattingRoom
       roomInfo={roomInfo}
       chatHistory={chatHistory}
@@ -156,8 +199,10 @@ function ChatContainer(props){
       setChatHistory={setChatHistory}
       getPastChat={getPastChat}
       closeRoom={props.closeRoom}
+      closeHandler = {closeHandler}
       exitRoom={exitRoom}
-    />
+      roomActive = {roomActive}
+    />)}
   </>
   )
 }

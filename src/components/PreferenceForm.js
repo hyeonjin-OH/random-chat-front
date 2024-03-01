@@ -118,9 +118,7 @@ function PreferenceForm(props){
   const [justChatting, setJustChatting] = useState(false)
 
   const { toast } = useToast()
-  
   const param = useParams();
-  const userId = param.id;
   
   let form = useForm({
     defaultValues: {
@@ -135,7 +133,6 @@ function PreferenceForm(props){
 
 
   const checkAccessToken = async () => {
-    
     if(isAccessTokenExpired(getCookie("accessToken"))){
 
       await instance()
@@ -225,8 +222,7 @@ function PreferenceForm(props){
       }
     }
 
-    data.preferRaid.sort();
-    data.uuId = userId;
+    data.preferRaid.sort((a,b) => a-b);
     let tmp = JSON.stringify(data);
 
     await checkAccessToken()
@@ -356,11 +352,9 @@ function PreferenceForm(props){
             </FormItem>
           )}
         />
-        { props.openedFlag ? <Button type="submit" variant="secondary">변경</Button> :  
+        { props.openedFlag == "Y" ? <Button type="submit" variant="secondary">변경</Button> :  
         <Button type="submit" variant="secondary">저장</Button>}
       </form>
-      <Typography variant="p">* 보다 빠른 매칭을 위해 레이드는 최대 3개, 포지션은 1개만 선택 가능합니다.</Typography>
-      <Typography variant="p"> 단순 채팅만 하고싶다면 '모코코'만 선택 하시고 저장 후 매칭해주시면 됩니다.</Typography>
       <div className="Subtitle-blank-20">
         <Toaster />
       </div>

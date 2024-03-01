@@ -7,7 +7,6 @@ import {instance, instanceE} from 'api/axiosApi'
 import {setCookie,getCookie} from 'app/cookie'
 import base64 from "base-64"
 import { isAccessTokenExpired } from 'app/isAccessTokenExpired';
-import { Toaster } from "~/components/ui/toaster";
 import { useToast } from "~/components/ui/use-toast.js"
 
 function ChatMain(){
@@ -30,7 +29,6 @@ function ChatMain(){
   const [selectedRoom, setSelectedRoom] = useState([])
 
   const [allRoom, setAllRoom] = useState([])
-  const [closeRoomInfo, setCloseRoomInfo] = useState(null)
   const [exitRoomInfo, setExitRoomInfo] = useState(null)
 
   const [containerHeight, setContainerHeight] = useState('auto');
@@ -67,13 +65,13 @@ function ChatMain(){
         } else {
           return navigate("/login");
         }
-  
+        console.log("setAllRoom")
         setAllRoom([]);
         let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom");
   
         if (res.data.length > 0) {
           const _inputData = res.data.map((r) => ({
-            idx: lastIdx + 1,
+            //idx: lastIdx + 1,
             createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
             lastMessage: r.lastMessage,
             roomId: r.roomId,
@@ -84,6 +82,9 @@ function ChatMain(){
       } catch (e) {
         if (e.response && e.response.status === 401) {
           navigate("/login");
+        }
+        else if(e.response && e.response.status === 400){
+
         }
       }
     };
@@ -159,8 +160,8 @@ function ChatMain(){
   }
 
   const closeRoom = (roomInfo) => {
+
     // 방이 닫힐 때 roomCount를 감소시킴
-    setCloseRoomInfo(roomInfo)
     setRoomCount(prevCount => prevCount > 0 ? prevCount - 1 : 0);
     setSelectedRoom(prevRooms => prevRooms.filter(room => room.roomId !== roomInfo.roomId));
   };
@@ -181,7 +182,7 @@ const exitRoom = async (room) => {
     let res = await instance(getCookie("accessToken"))
               .post("api/v1/chattingroom/exit", data);
     const _inputData = res.data.map((r) => ({
-      idx: lastIdx + 1,
+      //idx: lastIdx + 1,
       createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
       lastMessage: r.lastMessage,
       roomId: r.roomId,
@@ -218,7 +219,7 @@ const exitRoom = async (room) => {
       <div className= "chat-text-box">
         {selectedRoom.map((r, idx) => (
           <div className="chat-container-div" style={{ height: containerHeight, width: containerWidth }}>
-            <ChatContainer key={idx} roomInfo={r} closeRoom={closeRoom} enter={enterChat} closeRoomInfo={closeRoomInfo}
+            <ChatContainer key={idx} roomInfo={r} closeRoom={closeRoom} enter={enterChat}
               exit={exitChat} exitRoomInfo={exitRoomInfo} />
           </div>
         ))}
