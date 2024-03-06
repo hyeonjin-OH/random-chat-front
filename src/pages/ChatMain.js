@@ -18,6 +18,7 @@ function ChatMain(){
   const location = useLocation();
   const [ exitChat, setExitChat ] = useState(false)
   let { enterChat, room } = location.state || {};
+  const [ enterFlag, setEnterFlag ] = useState(false)
   const [roomInfo, setRoomInfo] = useState({
     roomKey: '',
     roomId: 0,
@@ -65,7 +66,6 @@ function ChatMain(){
         } else {
           return navigate("/login");
         }
-        console.log("setAllRoom")
         setAllRoom([]);
         let res = await instance(getCookie("accessToken")).get("api/v1/chattingroom");
   
@@ -94,7 +94,12 @@ function ChatMain(){
   },[])
 
   // ChatList에서 선택한 채팅방 정보 가져와서 셋팅
-  const getRoomInfo = (key, id, time) =>{
+  const getRoomInfo = (key, id, time, roomStatus) =>{
+    console.log("getRoomInfo with " + roomStatus)
+    if(roomStatus == "open"){
+      location.state = {}
+      setEnterFlag(false)
+    }
     
     const tmp = {roomKey: key, roomId: id, createdTime: time}
     setRoomInfo(tmp)
@@ -114,14 +119,23 @@ function ChatMain(){
         setSelectedRoom(selectedRoom.concat(tmp))
         setRoomCount(roomCount+1)
       }
+      console.log(selectedRoom)
     }
   }
 
   useEffect(()=>{
-    if(room && enterChat == true){
+    console.log(enterChat)
+    console.log(enterFlag)
+    if(room && enterChat == true && !enterFlag){
+      setEnterFlag(true)
       openRoom(room)
+
+      location.state = {};
+    }else{
+      //enterChat이 undefined여서 예외처리로 빠질 경우 EnterFlag false로 작업
+      //setEnterFlag(false)
     }
-  }, [enterChat])
+  }, [enterFlag])
 
   useEffect(() => {
     // .chat-text-box의 높이를 가져옴
@@ -152,10 +166,10 @@ function ChatMain(){
     
     if(typeof roomInfo === 'string'){
       const info = JSON.parse(roomInfo)
-      getRoomInfo(info.roomKey, info.roomId, time)
+      getRoomInfo(info.roomKey, info.roomId, time, "")
     }
     else{
-      getRoomInfo(roomInfo.roomKey, roomInfo.roomId, time)
+      getRoomInfo(roomInfo.roomKey, roomInfo.roomId, time, "")
     }
   }
 
@@ -168,8 +182,6 @@ function ChatMain(){
 
 // ChatList로 부터 나가는 방 정보 전달 받음
 const exitRoom = async (room) => {
-  setExitRoomInfo(room);
-  setExitChat(true);
 
   await checkAccessToken();
 
@@ -179,8 +191,10 @@ const exitRoom = async (room) => {
       uuId: uuId
     };
 
+    console.log(data)
     let res = await instance(getCookie("accessToken"))
               .post("api/v1/chattingroom/exit", data);
+    console.log(res)
     const _inputData = res.data.map((r) => ({
       //idx: lastIdx + 1,
       createdTime: moment(r.createdTime).format('YYYY.MM.DD HH:mm'),
@@ -189,6 +203,8 @@ const exitRoom = async (room) => {
       roomKey: r.roomKey
     }));
     setAllRoom(_inputData);
+    setExitRoomInfo(room);
+    setExitChat(true);
   } catch (error) {
     if (error.response && error.response.status === 401) {
       navigate("/login");
@@ -219,7 +235,7 @@ const exitRoom = async (room) => {
       <div className= "chat-text-box">
         {selectedRoom.map((r, idx) => (
           <div className="chat-container-div" style={{ height: containerHeight, width: containerWidth }}>
-            <ChatContainer key={idx} roomInfo={r} closeRoom={closeRoom} enter={enterChat}
+            <ChatContainer key={idx} roomInfo={r} closeRoom={closeRoom} enter={enterFlag}
               exit={exitChat} exitRoomInfo={exitRoomInfo} />
           </div>
         ))}

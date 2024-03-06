@@ -62,13 +62,13 @@ function ChatList(props){  const [roomCount, setRoomCount] = useState(0)
   },[props.allRoom])
 
   const clickHandler=(idx, e)=>{
-    props.getRoomInfo(allRoom[idx].roomKey, allRoom[idx].roomId, allRoom[idx].createdTime)
+    props.getRoomInfo(allRoom[idx].roomKey, allRoom[idx].roomId, allRoom[idx].createdTime, "open")
   }
 
 
   // 부모 ChatPage로 나가는 방 정보 전달
   const exitHandler=(idx, e)=>{
-    props.getRoomInfo(allRoom[idx].roomKey, allRoom[idx].roomId, allRoom[idx].createdTime)
+    props.getRoomInfo(allRoom[idx].roomKey, allRoom[idx].roomId, allRoom[idx].createdTime, "exit")
     const roomInfo =  {
       roomKey: allRoom[idx].roomKey,
       roomId: allRoom[idx].roomId,
